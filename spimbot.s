@@ -50,43 +50,148 @@ puzzle:      .word 0:452
 
 .text
 j main
-#struct puzzle {
-#	unsigned num_rows;
-#	unsigned num_cols;
-#   unsigned char unsolved_puzzle[num_rows][num_cols];
-#   unsigned char puzzle_bitmap[num_rows][ceil(num_cols/8)];
-#} puzzle;
 
-# char floodfill (Puzzle* puzzle, char marker, int row, int col) {
-#       if (row < 0 || col < 0) {
-#             return marker;
-#       }
-#       if (row >= puzzle->NUM_ROWS || col >= puzzle->NUM_COLS) {
-#               return marker;
-#       }
-#       char ** board = puzzle->board;
-#       if (board[row][col] != â€™#â€™) {
-#               return marker;
-#       }
-#       board[row][col] = marker;
-#       floodfill(puzzle, marker, row + 1, col + 1);
-#       floodfill(puzzle, marker, row + 1, col + 0);
-#       floodfill(puzzle, marker, row + 1, col - 1);
-#       floodfill(puzzle, marker, row, col + 1);
-#       floodfill(puzzle, marker, row, col - 1);
-#       floodfill(puzzle, marker, row - 1, col + 1);
-#       floodfill(puzzle, marker, row - 1, col + 0);
-#       floodfill(puzzle, marker, row - 1, col - 1);
-#       return marker + 1;
-# }
-# void islandfill(Puzzle* puzzle) {
-#       char marker = â€™Aâ€™;
-#       for (int i = 0; i < puzzle->NUM_ROWS; i++) {
-#             for (int j = 0; j < puzzle->NUM_COLS; j++) {
-#                     marker = floodfill(puzzle,marker,i,j);
-#             }
-#       }
-# }
+main:
+	# Construct interrupt mask
+	li      $t4, 0
+	or      $t4, $t4, BONK_INT_MASK # request bonk
+	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
+	or      $t4, $t4, 1 # global enable
+	mtc0    $t4, $12
+	
+	#Fill in your code here
+    la $t0, puzzle
+    sw $t0, REQUEST_PUZZLE
+request_puzzle:
+    j request_puzzle
+
+.kdata
+chunkIH:    .space 32
+non_intrpt_str:    .asciiz "Non-interrupt exception\n"
+unhandled_str:    .asciiz "Unhandled interrupt type\n"
+.ktext 0x80000180
+interrupt_handler:
+.set noat
+        move      $k1, $at        # Save $at
+.set at
+        la        $k0, chunkIH
+        sw        $a0, 0($k0)        # Get some free registers
+        sw        $v0, 4($k0)        # by storing them to a global variable
+        sw        $t0, 8($k0)
+        sw        $t1, 12($k0)
+        sw        $t2, 16($k0)
+        sw        $t3, 20($k0)
+		sw        $t4, 24($k0)
+		sw        $t5, 28($k0)
+        sw      $ra, 32($k0)
+        sw      $s0, 36($k0)
+        sw      $s1, 40($k0)
+        sw      $s2, 44($k0)
+        sw      $s3, 48($k0)
+        sw      $s4, 52($k0)
+        sw      $s5, 56($k0)
+
+        mfc0      $k0, $13             # Get Cause register
+        srl       $a0, $k0, 2
+        and       $a0, $a0, 0xf        # ExcCode field
+        bne       $a0, 0, non_intrpt
+
+
+
+interrupt_dispatch:            # Interrupt:
+    mfc0       $k0, $13        # Get Cause register, again
+    beq        $k0, 0, done        # handled all outstanding interrupts
+
+    and        $a0, $k0, BONK_INT_MASK    # is there a bonk interrupt?
+    bne        $a0, 0, bonk_interrupt
+
+    and        $a0, $k0, TIMER_INT_MASK    # is there a timer interrupt?
+    bne        $a0, 0, timer_interrupt
+
+	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
+	bne 	$a0, 0, request_puzzle_interrupt
+
+    li        $v0, PRINT_STRING    # Unhandled interrupt types
+    la        $a0, unhandled_str
+    syscall
+    j    done
+
+bonk_interrupt:
+	sw 		$0, BONK_ACK
+    #Fill in your code here
+    j       interrupt_dispatch    # see if other interrupts are waiting
+
+request_puzzle_interrupt:
+	sw 		$0, REQUEST_PUZZLE_ACK
+	#Fill in your code here
+    la  $s0, puzzle
+    sw  $s0, REQUEST_PUZZLE
+    #######
+        li      $s1, 'A'
+        li      $s2, 0
+
+        lw      $s4, 0($s0)
+        lw      $s5, 4($s0)
+        
+i_outer_loop:
+        bge     $s2, $s4, i_outer_end
+
+        li      $s3, 0
+i_inner_loop:
+        bge     $s3, $s5, i_inner_end
+
+        # marker = floodfill(puzzle,marker,i,j);
+        move    $a0, $s0
+        move    $a1, $s1
+        move    $a2, $s2
+        move    $a3, $s3
+        jal     floodfill
+        move    $s1, $v0
+
+        add     $s3, $s3, 1
+        j       i_inner_loop
+i_inner_end:
+
+        add     $s2, $s2, 1
+        j       i_outer_loop
+i_outer_end:
+    ########
+    la  $t0, puzzle
+    sw  $t0, SUBMIT_SOLUTION
+	j	interrupt_dispatch
+
+timer_interrupt:
+	sw 		$0, TIMER_ACK
+	#Fill in your code here
+    j        interrupt_dispatch    # see if other interrupts are waiting
+
+non_intrpt:                # was some non-interrupt
+    li        $v0, PRINT_STRING
+    la        $a0, non_intrpt_str
+    syscall                # print out an error message
+    # fall through to done
+
+done:
+    la      $k0, chunkIH
+    lw      $a0, 0($k0)        # Restore saved registers
+    lw      $v0, 4($k0)
+	lw      $t0, 8($k0)
+    lw      $t1, 12($k0)
+    lw      $t2, 16($k0)
+    lw      $t3, 20($k0)
+	lw      $t4, 24($k0)
+	lw      $t5, 28($k0)
+    lw      $ra, 32($k0)
+    lw      $s0, 36($k0)
+    lw      $s1, 40($k0)
+    lw      $s2, 44($k0)
+    lw      $s3, 48($k0)
+    lw      $s4, 52($k0)
+    lw      $s5, 56($k0)
+.set noat
+    move    $at, $k1        # Restore $at
+.set at
+    eret
 
 floodfill1:
     sub $sp, $sp, 12
@@ -282,240 +387,3 @@ f_done:
         add     $sp, $sp, 48
 
         jr      $ra
-
-# void islandfill(Puzzle* puzzle) {
-#       char marker = â€™Aâ€™;
-#       for (int i = 0; i < puzzle->NUM_ROWS; i++) {
-#             for (int j = 0; j < puzzle->NUM_COLS; j++) {
-#                     marker = floodfill(puzzle,marker,i,j);
-#             }
-#       }
-# }
-
-islandfill:
-        sub     $sp, $sp, 64
-        sw      $ra, 0($sp)
-        sw      $s0, 4($sp)
-        sw      $s1, 8($sp)
-        sw      $s2, 12($sp)
-        sw      $s3, 16($sp)
-        sw      $s4, 20($sp)
-        sw      $s5, 24($sp)
-        sw      $t0, 28($sp)
-        sw      $t1, 32($sp)
-        sw      $t2, 36($sp)
-        sw      $t3, 40($sp)
-        sw      $t4, 44($sp)
-        sw      $t5, 48($sp)
-        sw      $a0, 52($sp)
-        sw      $a1, 56($sp)
-        sw      $a2, 60($sp)
-
-        move    $s0, $a0
-        li      $s1, 'A'
-        li      $s2, 0
-
-        lw      $s4, 0($a0)
-        lw      $s5, 4($a0)
-
-i_outer_loop:
-        bge     $s2, $s4, i_outer_end
-
-        li      $s3, 0
-i_inner_loop:
-        bge     $s3, $s5, i_inner_end
-
-        #                     marker = floodfill(puzzle,marker,i,j);
-        move    $a0, $s0
-        move    $a1, $s1
-        move    $a2, $s2
-        move    $a3, $s3
-        jal     floodfill
-        move    $s1, $v0
-
-        # move    $a0, $s0
-        # jal     print_board
-
-        add     $s3, $s3, 1
-        j       i_inner_loop
-i_inner_end:
-
-        add     $s2, $s2, 1
-        j       i_outer_loop
-i_outer_end:
-        lw      $ra, 0($sp)
-        lw      $s0, 4($sp)
-        lw      $s1, 8($sp)
-        lw      $s2, 12($sp)
-        lw      $s3, 16($sp)
-        lw      $s4, 20($sp)
-        lw      $s5, 24($sp)
-        lw      $t0, 28($sp)
-        lw      $t1, 32($sp)
-        lw      $t2, 36($sp)
-        lw      $t3, 40($sp)
-        lw      $t4, 44($sp)
-        lw      $t5, 48($sp)
-        lw      $a0, 52($sp)
-        lw      $a1, 56($sp)
-        lw      $a2, 60($sp)
-        add     $sp, $sp, 64
-        jr      $ra
-
-
-# # print board ##################################################
-# #
-# # argument $a0: board to print
-# .globl print_board
-# print_board:
-#     sub         $sp, $sp, 20
-#     sw          $ra, 0($sp)     # save $ra and free up 4 $s registers for
-#     sw          $s0, 4($sp)     # i
-#     sw          $s1, 8($sp)     # j
-#     sw          $s2, 12($sp)    # the address
-#     sw          $s3, 16($sp)    # the line number
-#     move        $s2, $a0
-#     li          $s0, 0          # i
-# pb_loop1:
-#     li          $s1, 0          # j
-# pb_loop2:
-
-#     lw          $t0, 0($s2)     # NUM_ROWS
-#     lw          $t1, 4($s2)     # NUM_COLS
-
-#     mul         $t2, $s0, $t1   # i * NUM_COLS
-#     add         $t2, $t2, $s1   # i * NUM_COLS + j
-#     add         $t2, $t2, 8
-#     add         $t2, $t2, $s2
-
-
-#     lb          $a0, 0($t2)     # num = &board[i][j]
-#     li          $v0, 11
-#     syscall
-#     j           pb_cont
-# pb_cont:
-#     add         $s1, $s1, 1     # j++
-#     blt         $s1, 8, pb_loop2
-#     li          $v0, 11         # at the end of a line, print a newline char.
-#     li          $a0, '\n'
-#     syscall
-
-#     add         $s0, $s0, 1     # i++
-#     blt         $s0, 8, pb_loop1
-#     lw          $ra, 0($sp)     # restore registers and return
-#     lw          $s0, 4($sp)
-#     lw          $s1, 8($sp)
-#     lw          $s2, 12($sp)
-#     lw          $s3, 16($sp)
-#     add         $sp, $sp, 20
-#     jr          $ra
-
-
-main:
-	# Construct interrupt mask
-	li      $t4, 0
-	or      $t4, $t4, BONK_INT_MASK # request bonk
-	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
-	or      $t4, $t4, 1 # global enable
-	mtc0    $t4, $12
-	
-	#Fill in your code here
-
-request_puzzle:
-    sub $sp, $sp, 20
-    sw $s0, 0($sp)
-    sw $s1, 4($sp)
-    sw $s2, 8($sp)
-    sw $s3, 12($sp)
-    sw $ra, 16($sp)
-    la $t0, puzzle
-    li $s0, 0
-    sw $t0, REQUEST_PUZZLE($0)
-wait_request:
-    bne $s0, 1, wait_request
-    # jal move_right
-    move $a0, $t0
-    jal islandfill
-    sw $t0, SUBMIT_SOLUTION($0)
-    j request_puzzle
-
-.kdata
-chunkIH:    .space 32
-non_intrpt_str:    .asciiz "Non-interrupt exception\n"
-unhandled_str:    .asciiz "Unhandled interrupt type\n"
-.ktext 0x80000180
-interrupt_handler:
-.set noat
-        move      $k1, $at        # Save $at
-.set at
-        la        $k0, chunkIH
-        sw        $a0, 0($k0)        # Get some free registers
-        sw        $v0, 4($k0)        # by storing them to a global variable
-        sw        $t0, 8($k0)
-        sw        $t1, 12($k0)
-        sw        $t2, 16($k0)
-        sw        $t3, 20($k0)
-		sw $t4, 24($k0)
-		sw $t5, 28($k0)
-
-        mfc0      $k0, $13             # Get Cause register
-        srl       $a0, $k0, 2
-        and       $a0, $a0, 0xf        # ExcCode field
-        bne       $a0, 0, non_intrpt
-
-
-
-interrupt_dispatch:            # Interrupt:
-    mfc0       $k0, $13        # Get Cause register, again
-    beq        $k0, 0, done        # handled all outstanding interrupts
-
-    and        $a0, $k0, BONK_INT_MASK    # is there a bonk interrupt?
-    bne        $a0, 0, bonk_interrupt
-
-    and        $a0, $k0, TIMER_INT_MASK    # is there a timer interrupt?
-    bne        $a0, 0, timer_interrupt
-
-	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
-	bne 	$a0, 0, request_puzzle_interrupt
-
-    li        $v0, PRINT_STRING    # Unhandled interrupt types
-    la        $a0, unhandled_str
-    syscall
-    j    done
-
-bonk_interrupt:
-	sw 		$0, BONK_ACK
-    #Fill in your code here
-    j       interrupt_dispatch    # see if other interrupts are waiting
-
-request_puzzle_interrupt:
-	sw 		$0, REQUEST_PUZZLE_ACK
-	#Fill in your code here
-    li $s0, 1
-	j	interrupt_dispatch
-
-timer_interrupt:
-	sw 		$0, TIMER_ACK
-	#Fill in your code here
-    j        interrupt_dispatch    # see if other interrupts are waiting
-
-non_intrpt:                # was some non-interrupt
-    li        $v0, PRINT_STRING
-    la        $a0, non_intrpt_str
-    syscall                # print out an error message
-    # fall through to done
-
-done:
-    la      $k0, chunkIH
-    lw      $a0, 0($k0)        # Restore saved registers
-    lw      $v0, 4($k0)
-	lw      $t0, 8($k0)
-    lw      $t1, 12($k0)
-    lw      $t2, 16($k0)
-    lw      $t3, 20($k0)
-	lw $t4, 24($k0)
-	lw $t5, 28($k0)
-.set noat
-    move    $at, $k1        # Restore $at
-.set at
-    eret
