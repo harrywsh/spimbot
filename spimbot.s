@@ -124,15 +124,15 @@ request_puzzle_interrupt:
         li      $a1, 'A'
         li      $a2, 0
 
-        lw      $s4, 0($a0)
-        lw      $s5, 4($a0)
+        lw      $t4, 0($a0)
+        lw      $t5, 4($a0)
         
 i_outer_loop:
-        bge     $a2, $s4, i_outer_end
+        bge     $a2, $t4, i_outer_end
 
         li      $a3, 0
 i_inner_loop:
-        bge     $a3, $s5, i_inner_end
+        bge     $a3, $t5, i_inner_end
 
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -177,22 +177,17 @@ done:
     eret
 
 floodfill:
-    blt $a2, $zero, return_short
-    blt $a3, $zero, return_short
-    lw $t0, 0($a0)          
-    lw $t1, 4($a0)
-    bge $a2, $t0, return_short
-    bge $a3, $t1, return_short
-    lw      $t0, 0($a0)
-    lw      $t1, 4($a0)
-    mul     $t2, $a2, $t1
+    mul     $t2, $a2, $t5
     add     $t2, $t2, $a3
     add     $t2, $t2, $a0
-    add     $t2, $t2, 8
-    lb      $t3, 0($t2)
+    lb      $t3, 8($t2)
     bne $t3, '#', return_short
+    blt $a2, $zero, return_short
+    blt $a3, $zero, return_short
+    bge $a2, $t4, return_short
+    bge $a3, $t5, return_short
 
-    sb $a1, 0($t2)                  # board[row][col] = marker;
+    sb $a1, 8($t2)                  # board[row][col] = marker;
 
     sub $sp, $sp, 12
     sw $ra, 0($sp)
