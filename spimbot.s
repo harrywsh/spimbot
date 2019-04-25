@@ -84,6 +84,9 @@ interrupt_handler:
 		sw        $t4, 24($k0)
 		sw        $t5, 28($k0)
         sw        $ra, 32($k0)
+        sw        $a1, 36($k0)
+        sw        $a2, 40($k0)
+        sw        $a3, 44($k0)        # can be deleted if not used
         ###warning: 除了puzzle之外的interrupt都不要使用t0-t5！！！！！
 
         mfc0      $k0, $13             # Get Cause register
@@ -122,6 +125,8 @@ request_puzzle_interrupt:
     la  $a0, puzzle
     sw  $a0, REQUEST_PUZZLE
     #######
+    li  $t9, -1 #!!!!!!!warning: don't use t9
+    li  $t8, '#'#!!!!!!!warning: don't use t8
         li      $a1, 'A'
         li      $a2, 0
 
@@ -172,6 +177,9 @@ done:
 	lw      $t4, 24($k0)
 	lw      $t5, 28($k0)
     lw      $ra, 32($k0)
+    lw      $a1, 36($k0)
+    lw      $a2, 40($k0)
+    lw      $a3, 44($k0)        # can be deleted if not used
 .set noat
     move    $at, $k1        # Restore $at
 .set at
@@ -182,11 +190,11 @@ floodfill:
     add     $t2, $t2, $a3
     add     $t2, $t2, $a0
     lb      $t3, 8($t2)
-    bne $t3, '#', return_short
-    blt $a2, $zero, return_short
-    blt $a3, $zero, return_short
-    bge $a2, $t4, return_short
-    bge $a3, $t5, return_short
+    bne $t3, $t8, return_short
+    beq $a2, $t9, return_short
+    beq $a3, $t9, return_short
+    beq $a2, $t4, return_short
+    beq $a3, $t5, return_short
 
     sb $a1, 8($t2)                  # board[row][col] = marker;
 
