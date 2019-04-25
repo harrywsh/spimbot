@@ -52,6 +52,8 @@ puzzle:      .word 0:452
 j main
 
 main:
+    li  $t9, -1 #!!!!!!!warning: don't use t9
+    li  $t8, '#'#!!!!!!!warning: don't use t8
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
@@ -125,8 +127,6 @@ request_puzzle_interrupt:
     la  $a0, puzzle
     sw  $a0, REQUEST_PUZZLE
     #######
-    li  $t9, -1 #!!!!!!!warning: don't use t9
-    li  $t8, '#'#!!!!!!!warning: don't use t8
         li      $a1, 'A'
         li      $a2, 0
 
@@ -134,11 +134,11 @@ request_puzzle_interrupt:
         lw      $t5, 4($a0)
         
 i_outer_loop:
-        bge     $a2, $t4, i_outer_end
+        beq     $a2, $t4, i_outer_end
 
         li      $a3, 0
 i_inner_loop:
-        bge     $a3, $t5, i_inner_end
+        beq     $a3, $t5, i_inner_end
 
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
