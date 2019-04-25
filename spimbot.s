@@ -84,6 +84,7 @@ interrupt_handler:
 		sw        $t4, 24($k0)
 		sw        $t5, 28($k0)
         sw        $ra, 32($k0)
+        ###warning: 除了puzzle之外的interrupt都不要使用t1-t5！！！！！
 
         mfc0      $k0, $13             # Get Cause register
         srl       $a0, $k0, 2
