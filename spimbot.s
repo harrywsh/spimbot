@@ -52,8 +52,7 @@ puzzle:      .word 0:452
 j main
 
 main:
-    li  $t9, -1 #!!!!!!!warning: don't use t9
-    li  $t8, '#'#!!!!!!!warning: don't use t8
+    li  $t9, '#' #!!!!!!!warning: don't use t9
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
@@ -190,9 +189,9 @@ floodfill:
     add     $t2, $t2, $a3
     add     $t2, $t2, $a0
     lb      $t3, 8($t2)
-    bne $t3, $t8, return_short
-    beq $a2, $t9, return_short
-    beq $a3, $t9, return_short
+    bne $t3, $t9, return_short
+    bltz $a2, return_short
+    bltz $a3, return_short
     beq $a2, $t4, return_short
     beq $a3, $t5, return_short
 
