@@ -49,33 +49,22 @@ FINISH_APPLIANCE_INSTANT = 0xffff0078
 puzzle:      .word 0:452
 
 .text
-
-
+j main
 
 main:
+    li  $t9, '#' #!!!!!!!warning: don't use t9
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
 	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
 	or      $t4, $t4, 1 # global enable
 	mtc0    $t4, $12
-	sub $sp $sp 4
-    sw $ra 0($sp)
+	
 	#Fill in your code here
-    li $s7 0 
-    
-infinite:
-    jal load_puzzle
-    lw $ra 0($sp)
-	j infinite
-
-
-load_puzzle:
-    la $a0 puzzle
-    sw $a0 REQUEST_PUZZLE
-    jr $ra
-
-
+    la $t0, puzzle
+    sw $t0, REQUEST_PUZZLE
+request_puzzle:
+    j request_puzzle
 
 .kdata
 chunkIH:    .space 32
@@ -93,8 +82,13 @@ interrupt_handler:
         sw        $t1, 12($k0)
         sw        $t2, 16($k0)
         sw        $t3, 20($k0)
-		sw $t4, 24($k0)
-		sw $t5, 28($k0)
+		sw        $t4, 24($k0)
+		sw        $t5, 28($k0)
+        sw        $ra, 32($k0)
+        sw        $a1, 36($k0)
+        sw        $a2, 40($k0)
+        sw        $a3, 44($k0)        # can be deleted if not used
+        ###warning: 除了puzzle之外的interrupt都不要使用t0-t5！！！！！
 
         mfc0      $k0, $13             # Get Cause register
         srl       $a0, $k0, 2
@@ -102,8 +96,6 @@ interrupt_handler:
         bne       $a0, 0, non_intrpt
 
 
-
- 
 
 interrupt_dispatch:            # Interrupt:
     mfc0       $k0, $13        # Get Cause register, again
@@ -123,205 +115,6 @@ interrupt_dispatch:            # Interrupt:
     syscall
     j    done
 
-
-floodfill:
-
-#       if (row < 0 || col < 0) {
-#             return marker;
-#       }
-#       if (row >= puzzle->NUM_ROWS || col >= puzzle->NUM_COLS) {
-#               return marker;
-#       }
-        slt     $t0, $a2, 0
-        slt     $t1, $a3, 0
-        or      $t0, $t1, $t0
-        beq     $t0, 0, f_end_if1
-        move    $v0, $a1
-        jr      $ra
-f_end_if1:
-
-        lw      $t0, 0($a0)
-        lw      $t1, 4($a0)
-        sge     $t0, $a2, $t0
-        sge     $t1, $a3, $t1
-        or      $t0, $t1, $t0
-
-        beq     $t0, 0, f_end_if2
-        move    $v0, $a1
-        jr      $ra
-f_end_if2:
-
-
-#       char board[][] = puzzle->board;
-#       if (board[row][col] != ’#’) {
-#               return marker;
-#       }
-        lw      $t0, 0($a0)
-        lw      $t1, 4($a0)
-        mul     $t2, $a2, $t1
-        add     $t2, $t2, $a3
-        add     $t2, $t2, $a0
-        add     $t2, $t2, 8
-        lb      $t3, 0($t2)
-
-        beq     $t3, '#', f_endif_3
-        move    $v0, $a1
-        jr      $ra
-f_endif_3:
-
-f_recur:
-        sub     $sp, $sp, 32
-        sw      $ra, 0($sp)
-        sw      $s0, 4($sp)
-        sw      $s1, 8($sp)
-        sw      $s2, 12($sp)
-        sw      $s3, 16($sp)
-        sw      $a0, 20($sp)
-        sw      $a1, 24($sp)
-        sw      $a2, 28($sp)
-
-#       board[row][col] = marker;
-        sb      $a1, 0($t2)
-
-        move    $s0, $a0
-        move    $s1, $a1
-        move    $s2, $a2
-        move    $s3, $a3
-
-#       floodfill(puzzle, marker, row + 1, col + 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, 1
-        add     $a3, $s3, 1
-        jal     floodfill
-
-#       floodfill(puzzle, marker, row + 1, col + 0);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, 1
-        add     $a3, $s3, 0
-        jal     floodfill
-#       floodfill(puzzle, marker, row + 1, col - 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, 1
-        add     $a3, $s3, -1
-        jal     floodfill
-#       floodfill(puzzle, marker, row, col + 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, 0
-        add     $a3, $s3, 1
-        jal     floodfill
-#       floodfill(puzzle, marker, row, col - 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, 0
-        add     $a3, $s3, -1
-        jal     floodfill
-#       floodfill(puzzle, marker, row - 1, col + 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, -1
-        add     $a3, $s3, 1
-        jal     floodfill
-#       floodfill(puzzle, marker, row - 1, col + 0);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, -1
-        add     $a3, $s3, 0
-        jal     floodfill
-#       floodfill(puzzle, marker, row - 1, col - 1);
-        move    $a0, $s0
-        move    $a1, $s1
-        add     $a2, $s2, -1
-        add     $a3, $s3, -1
-        jal     floodfill
-#       return marker + 1;
-        add     $v0, $a1, 1
-f_done:
-        lw      $ra, 0($sp)
-        lw      $s0, 4($sp)
-        lw      $s1, 8($sp)
-        lw      $s2, 12($sp)
-        lw      $s3, 16($sp)
-
-        lw      $a0, 20($sp)
-        lw      $a1, 24($sp)
-        lw      $a2, 28($sp)
-        add     $sp, $sp, 32
-
-        jr      $ra
-
-# void islandfill(Puzzle* puzzle) {
-#       char marker = ’A’;
-#       for (int i = 0; i < puzzle->NUM_ROWS; i++) {
-#             for (int j = 0; j < puzzle->NUM_COLS; j++) {
-#                     marker = floodfill(puzzle,marker,i,j);
-#             }
-#       }
-# }
-
-islandfill:
-        sub     $sp, $sp, 32
-        sw      $ra, 0($sp)
-        sw      $s0, 4($sp)
-        sw      $s1, 8($sp)
-        sw      $s2, 12($sp)
-        sw      $s3, 16($sp)
-        sw      $s4, 20($sp)
-        sw      $s5, 24($sp)
-        sw      $a0, 28($sp)
-
-
-        move    $s0, $a0
-        li      $s1, 'A'
-        li      $s2, 0
-
-        lw      $s4, 0($a0)
-        lw      $s5, 4($a0)
-
-i_outer_loop:
-        bge     $s2, $s4, i_outer_end
-
-        li      $s3, 0
-i_inner_loop:
-        bge     $s3, $s5, i_inner_end
-
-        #                     marker = floodfill(puzzle,marker,i,j);
-        move    $a0, $s0
-        move    $a1, $s1
-        move    $a2, $s2
-        # li      $s1, 'A'
-        # li      $s2, 0
-        move    $a3, $s3
-        jal     floodfill
-        move    $s1, $v0
-
-        # move    $a0, $s0
-        # jal     print_board
-
-        add     $s3, $s3, 1
-        j       i_inner_loop
-i_inner_end:
-
-        add     $s2, $s2, 1
-        j       i_outer_loop
-i_outer_end:
-        lw      $ra, 0($sp)
-        lw      $s0, 4($sp)
-        lw      $s1, 8($sp)
-        lw      $s2, 12($sp)
-        lw      $s3, 16($sp)
-        lw      $s4, 20($sp)
-        lw      $s5, 24($sp)  
-        lw      $a0, 28($sp)
-        add     $sp, $sp, 32
-        jr      $ra
-
-
-
-
 bonk_interrupt:
 	sw 		$0, BONK_ACK
     #Fill in your code here
@@ -330,23 +123,35 @@ bonk_interrupt:
 request_puzzle_interrupt:
 	sw 		$0, REQUEST_PUZZLE_ACK
 	#Fill in your code here
-    
-    # ble $7 $0 end_puzzle
-    
-    sub $sp $sp 4
-    sw $ra 0($sp)
-    
-    la $a0 puzzle
-    jal islandfill
-    
-    lw $ra 0($sp)
-    
-    # la $a0 puzzle
-    # sw $a0 REQUEST_PUZZLE    
+    la  $a0, puzzle
+    sw  $a0, REQUEST_PUZZLE
+    #######
+        li      $a1, 'A'
+        li      $a2, 0
 
-    add $s7 $s7 1
-    la $t0 puzzle    
-    sw $t0 SUBMIT_SOLUTION
+        lw      $t4, 0($a0)
+        lw      $t5, 4($a0)
+        
+i_outer_loop:
+        beq     $a2, $t4, i_outer_end
+
+        li      $a3, 0
+i_inner_loop:
+        beq     $a3, $t5, i_inner_end
+
+        # marker = floodfill(puzzle,marker,i,j);
+        jal     floodfill
+        move    $a1, $v0
+
+        add     $a3, $a3, 1
+        j       i_inner_loop
+i_inner_end:
+
+        add     $a2, $a2, 1
+        j       i_outer_loop
+i_outer_end:
+    ########
+    sw  $a0, SUBMIT_SOLUTION
 	j	interrupt_dispatch
 
 timer_interrupt:
@@ -368,12 +173,71 @@ done:
     lw      $t1, 12($k0)
     lw      $t2, 16($k0)
     lw      $t3, 20($k0)
-	lw $t4, 24($k0)
-	lw $t5, 28($k0)
-
-
-
+	lw      $t4, 24($k0)
+	lw      $t5, 28($k0)
+    lw      $ra, 32($k0)
+    lw      $a1, 36($k0)
+    lw      $a2, 40($k0)
+    lw      $a3, 44($k0)        # can be deleted if not used
 .set noat
     move    $at, $k1        # Restore $at
 .set at
     eret
+
+floodfill:
+    mul     $t2, $a2, $t5
+    add     $t2, $t2, $a3
+    add     $t2, $t2, $a0
+    lb      $t3, 8($t2)
+    bne $t3, $t9, return_short
+    bltz $a2, return_short
+    bltz $a3, return_short
+    beq $a2, $t4, return_short
+    beq $a3, $t5, return_short
+
+    sb $a1, 8($t2)                  # board[row][col] = marker;
+
+    sub $sp, $sp, 12
+    sw $ra, 0($sp)
+    sw $a2, 4($sp)
+    sw $a3, 8($sp)
+
+    addi $a2, $a2, 1
+    addi $a3, $a3, 1
+    jal floodfill
+    addi $a3, $a3, -1
+    jal floodfill
+    addi $a3, $a3, -1
+    jal floodfill
+
+    addi $a2, $a2, -1
+    addi $a3, $a3, 2
+    jal floodfill
+    addi $a3, $a3, -2
+    jal floodfill
+
+    addi $a2, $a2, -1
+    addi $a3, $a3, 2
+    jal floodfill
+    addi $a3, $a3, -1
+    jal floodfill
+    addi $a3, $a3, -1
+    jal floodfill
+
+return_marker_1:
+    addi $v0, $a1, 1
+    lw $a3, 8($sp)
+    lw $a2, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 12
+	jr	$ra                         # return marker + 1;
+return_marker:
+    move $v0, $a1
+    lw $a3, 8($sp)
+    lw $a2, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 12
+	jr	$ra                         # return marker;
+return_short:
+    move $v0, $a1
+    jr	$ra
