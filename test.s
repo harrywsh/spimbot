@@ -15,15 +15,16 @@ i_outer_loop:
         li      $a3, 0
         li      $t6, 0  ##
         mul     $t8, $a2, $t7 ##
+        mul     $t0, $t4, $t5 ##
+        add     $t8, $t8, $t0 ##
 i_inner_loop:
         beq     $t6, $t7, i_inner_end
-        beq     $a3, $t5, i_inner_end
 
         add     $t2, $t8, $t6
         add     $t2, $t2, $a0
-        lb      $t3, 12($t2)
+        lbu     $t0, 8($t2)
         
-        andi    $t1, $t3, 0x80
+        andi    $t1, $t0, 0x80
         beqz    $t1, else1
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -32,7 +33,7 @@ i_inner_loop:
         j       else2
 else1:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x40
+        andi    $t1, $t0, 0x40
         beqz    $t1, else2
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -41,7 +42,7 @@ else1:
         j       else3
 else2:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x20
+        andi    $t1, $t0, 0x20
         beqz    $t1, else3
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -50,7 +51,7 @@ else2:
         j       else4
 else3:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x10
+        andi    $t1, $t0, 0x10
         beqz    $t1, else4
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -60,7 +61,7 @@ else3:
 else4:
         add     $a3, $a3, 1
         beq     $a3, $t5, i_inner_end
-        andi    $t1, $t3, 0x8
+        andi    $t1, $t0, 0x8
         beqz    $t1, else5
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -69,7 +70,7 @@ else4:
         j       else6
 else5:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x4
+        andi    $t1, $t0, 0x4
         beqz    $t1, else6
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -78,7 +79,7 @@ else5:
         j       else7
 else6:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x2
+        andi    $t1, $t0, 0x2
         beqz    $t1, else7
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
@@ -87,7 +88,7 @@ else6:
         j       else8
 else7:
         add     $a3, $a3, 1
-        andi    $t1, $t3, 0x1
+        andi    $t1, $t0, 0x1
         beqz    $t1, else8
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
