@@ -88,7 +88,7 @@ interrupt_handler:
         sw        $a1, 36($k0)
         sw        $a2, 40($k0)
         sw        $a3, 44($k0)        # can be deleted if not used
-        ###warning: 除了puzzle之外的interrupt都不要使用t0-t5！！！！！
+        ###warning: reserve $t0-$t5 for solving puzzle!!!!!!
 
         mfc0      $k0, $13             # Get Cause register
         srl       $a0, $k0, 2
@@ -131,6 +131,8 @@ request_puzzle_interrupt:
 
         lw      $t4, 0($a0)
         lw      $t5, 4($a0)
+
+        move    $t8, $a0    #warning: reserve $t8!!!
         
 i_outer_loop:
         beq     $a2, $t4, i_outer_end
@@ -138,12 +140,29 @@ i_outer_loop:
         li      $a3, 0
 i_inner_loop:
         beq     $a3, $t5, i_inner_end
-
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, else1
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
         move    $a1, $v0
-
+        add     $t8, $t8, 1
         add     $a3, $a3, 1
+        beq     $a3, $t5, i_inner_end
+        j       else2
+else1:
+        add     $t8, $t8, 1
+        add     $a3, $a3, 1
+        # unrolling
+        beq     $a3, $t5, i_inner_end
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, else2
+        # marker = floodfill(puzzle,marker,i,j);
+        jal     floodfill
+        move    $a1, $v0
+else2:
+        add     $t8, $t8, 1
+        add     $a3, $a3, 1
+
         j       i_inner_loop
 i_inner_end:
 
