@@ -67,7 +67,7 @@ request_puzzle:
     j request_puzzle
 
 .kdata
-chunkIH:    .space 32
+chunkIH:    .space 48
 non_intrpt_str:    .asciiz "Non-interrupt exception\n"
 unhandled_str:    .asciiz "Unhandled interrupt type\n"
 .ktext 0x80000180
