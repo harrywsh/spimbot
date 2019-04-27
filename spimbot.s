@@ -145,25 +145,25 @@ i_inner_loop:
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
         move    $a1, $v0
-        add     $t8, $t8, 1
         add     $a3, $a3, 1
-        beq     $a3, $t5, i_inner_end
+        beq     $a3, $t5, i_inner_end_long
         j       else2
 else1:
-        add     $t8, $t8, 1
         add     $a3, $a3, 1
         # unrolling
-        beq     $a3, $t5, i_inner_end
-        lb      $t0, 8($t8)
+        beq     $a3, $t5, i_inner_end_long
+        lb      $t0, 9($t8)
         bne     $t0, $t9, else2
         # marker = floodfill(puzzle,marker,i,j);
         jal     floodfill
         move    $a1, $v0
 else2:
-        add     $t8, $t8, 1
+        add     $t8, $t8, 2
         add     $a3, $a3, 1
 
         j       i_inner_loop
+i_inner_end_long:
+        add     $t8, $t8, 1
 i_inner_end:
 
         add     $a2, $a2, 1
