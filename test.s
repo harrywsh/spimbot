@@ -494,6 +494,7 @@ start_work:
     li $t1, 0
     sw $t1, DROPOFF
     sw $t1, FINISH_APPLIANCE_INSTANT
+    sw $t1, FINISH_APPLIANCE_INSTANT
     sw $t1, PICKUP
 infinite:
     j infinite
