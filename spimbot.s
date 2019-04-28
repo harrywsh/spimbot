@@ -298,19 +298,21 @@ right_go_next_bin:
     li      $t7,  MAX_ITERATION
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_work:
+    xor     $s7, $s7, 1
     move     $a0, $s7
     jal     fetch_item
-    bnez    $s7, right_return_work_else
-    li      $t0, 342
+    bnez    $s7, right_return_work_long
+    li      $t0, 315
     j		right_return_work_endif
-right_return_work_else:
-    li      $t0, 354
+right_return_work_long:
+    li      $t0, 342
 right_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    li      $t7, -1
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_appliance:
     #### get INGREDIENT first
@@ -325,9 +327,13 @@ right_return_appliance:
     li      $t7, -1
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_start_work:
+    li      $t0, 270
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    li      $t0, 40000
+    li      $t0, 45000
     sw      $t0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 #### left    
@@ -378,12 +384,13 @@ left_go_next_bin:
     li      $t7,  MAX_ITERATION
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_work:
+    xor     $s7, $s7, 1
     move    $a0, $s7
     jal     fetch_item
-    bnez    $s7, left_return_work_else
+    bnez    $s7, left_return_work_long
     li      $t0, 225
     j		left_return_work_endif
-left_return_work_else:
+left_return_work_long:
     li      $t0, 198
 left_return_work_endif:
     sw      $t0, ANGLE
@@ -406,9 +413,13 @@ left_return_appliance:
     li      $t7, -1
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_start_work:
+    li      $t0, 270
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    li      $t0, 40000
+    li      $t0, 45000
     sw      $t0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 
@@ -472,7 +483,7 @@ timer_interrupt:
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
     beq     $t7, -5, timer_return
-    add		$t0, $t7, 5
+    add		$t0, $t7, 4
     sw      $t0, DROPOFF
     li      $t0, 40000
     sw      $t0, TIMER
@@ -483,26 +494,25 @@ timer_return:
     blt     $t0, 150, timer_left
     bnez    $s7, timer_right_long
     ##short return
-    li      $t0, 162
+    li      $t0, 135
     j       timer_right_return
 timer_right_long:
     ##long return
-    li      $t0, 174
+    li      $t0, 162
 timer_right_return:
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    nor     $s7, $s7, $0
     j       interrupt_dispatch    # see if other interrupts are waiting
 timer_left:
-    bnez    $s7, timer_left_short
-    ##long return
+    bnez    $s7, timer_left_long
+    ##short return
     li      $t0, 45
     j       timer_left_return
-timer_left_short:
-    ##short return
+timer_left_long:
+    ##long return
     li      $t0, 18
 timer_left_return:
     sw      $t0, ANGLE
@@ -510,7 +520,6 @@ timer_left_return:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    nor     $s7, $s7, $0
     j       interrupt_dispatch    # see if other interrupts are waiting
 
 non_intrpt:                # was some non-interrupt
