@@ -302,10 +302,10 @@ right_return_work:
     move     $a0, $s7
     jal     fetch_item
     bnez    $s7, right_return_work_long
-    li      $t0, 315
+    li      $t0, 342
     j		right_return_work_endif
 right_return_work_long:
-    li      $t0, 342
+    li      $t0, 354
 right_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -388,10 +388,10 @@ left_return_work:
     move    $a0, $s7
     jal     fetch_item
     bnez    $s7, left_return_work_long
-    li      $t0, 225
+    li      $t0, 198
     j		left_return_work_endif
 left_return_work_long:
-    li      $t0, 198
+    li      $t0, 186
 left_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -498,11 +498,11 @@ timer_return:
     blt     $t0, 150, timer_left
     bnez    $s7, timer_right_long
     ##short return
-    li      $t0, 135
+    li      $t0, 162
     j       timer_right_return
 timer_right_long:
     ##long return
-    li      $t0, 162
+    li      $t0, 174
 timer_right_return:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -513,11 +513,11 @@ timer_right_return:
 timer_left:
     bnez    $s7, timer_left_long
     ##short return
-    li      $t0, 45
+    li      $t0, 18
     j       timer_left_return
 timer_left_long:
     ##long return
-    li      $t0, 18
+    li      $t0, 6
 timer_left_return:
     sw      $t0, ANGLE
     li      $t0, 1
