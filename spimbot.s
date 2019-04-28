@@ -56,6 +56,7 @@ layout:      .byte 0:225
 shared:      .word 0:2
 order:       .word 6
 score:       .word 2
+request:     .word 2
 
 .text
 j main
