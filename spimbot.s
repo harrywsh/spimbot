@@ -57,7 +57,6 @@ shared:      .word 0:2
 order:       .word 6
 score:       .word 2
 request:     .word 2
-
 .text
 j main
 
@@ -98,6 +97,7 @@ main:
     li $t0 35636716367
     sw $t0 0($t1)
     sw $t1 SET_REQUEST
+    
     li $s3 0
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
@@ -896,6 +896,11 @@ magic_done:
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 2
+    srl $a3 $a3 27
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
@@ -1011,16 +1016,11 @@ submit_order:
     sw $t0 ANGLE
     li $t0 1
     sw $t0 ANGLE_CONTROL
-    sw $t0 SUBMIT_ORDER
-    
-    la $t0 score
-    lw $t0 0($t0)
-    sub $t0 $t0 $s3
-    bgez $t0 submit_continue
+    sw $t0 SUBMIT_ORDER  
+    # la $t0 score
+    # sw $t0 0xffff1018($0)
+    # lw $t0 0($t0)
     # sw $t0 0xffff0080($0)
-submit_continue:  
-    move $s3 $t0
-    
     jr $ra
 
 wait_todie:
