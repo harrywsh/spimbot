@@ -82,7 +82,6 @@ search_right:
     jr $ra
 
 main:
-    li  $t9, '#' #!!!!!!!warning: don't use t9
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
@@ -137,6 +136,7 @@ start:
     li      $t7, MAX_ITERATION ### reserve t7!!!
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
+    li      $s6, 0 ### reserve s6!!!
 infinite:
     j infinite
 
@@ -253,9 +253,9 @@ interrupt_dispatch:            # Interrupt:
 	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
 	bne 	$a0, 0, request_puzzle_interrupt
 
-    li        $v0, PRINT_STRING    # Unhandled interrupt types
-    la        $a0, unhandled_str
-    syscall
+    # li        $v0, PRINT_STRING    # Unhandled interrupt types
+    # la        $a0, unhandled_str
+    # syscall
     j    done
 
 bonk_interrupt:
@@ -357,8 +357,7 @@ right_start_work:
     sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    li      $t0, 50000
-    sw      $t0, TIMER
+    sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 #### left    
 bonk_left:
@@ -386,7 +385,6 @@ left_counter:
     li      $t0, 3
     sw      $t0, DROPOFF
     lw      $t0, TIMER
-    # sw      $t0, 0xffff0080($0)
     blt     $t0, MAX_TIME, left_continue_work
     li      $t0, 90
     sw      $t0, ANGLE
@@ -455,10 +453,10 @@ left_start_work:
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
     sw      $t0, FINISH_APPLIANCE_INSTANT
-    li      $t0, 1000
-    sw      $t0, TIMER
+    sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 bonk_submit:
+    li      $s6, 1
     jal submit
     j interrupt_dispatch
 
@@ -515,6 +513,7 @@ i_inner_end:
 i_outer_end:
     ########
     sw  $a0, SUBMIT_SOLUTION
+    bnez     $s6, submit
 	j	interrupt_dispatch
 
 timer_interrupt:
@@ -527,8 +526,7 @@ timer_interrupt:
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
     sw      $t0, FINISH_APPLIANCE_INSTANT
-    li      $t0, 1000
-    sw      $t0, TIMER
+    sw      $0, TIMER
     j	    interrupt_dispatch
 
 timer_return:
@@ -774,9 +772,6 @@ return_fetch:
     jr $ra
 
 submit:
-    sub $sp $sp 8
-    sw $s0 0($sp)
-    sw $s1 4($sp)
     la $s0 order
     sw $s0 GET_TURNIN_ORDER
     lw $t0 BOT_X
@@ -823,7 +818,7 @@ magic_done:
     sll $a0 $s1 9
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
@@ -836,7 +831,7 @@ magic_done:
     sll $a0 $s1 14
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
@@ -849,7 +844,7 @@ magic_done:
     sll $a0 $s1 19
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
@@ -862,7 +857,7 @@ magic_done:
     sll $a0 $s1 24
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
@@ -877,7 +872,7 @@ magic_done:
     srl $a0 $a0 27
     
     # sub $a3 $a0 $a3
-    # bgtz $a3 wait_todie
+    # bgtz $a3 interrupt_dispatch
 
     sll $a0 $a0 2
     lw $s1 0($s0)
@@ -889,7 +884,7 @@ magic_done:
     # # sll $a3 $a3 29
     # srl $a3 $a3 29
     # sub $a3 $a0 $a3
-    # bgtz $a3 wait_todie
+    # bgtz $a3 interrupt_dispatch
 
     # sw $a0 PRINT_INT_ADDR
     li $a1 196608
@@ -902,6 +897,7 @@ magic_done:
     lw $a3 0($a3)
     sll $a3 $a3 2
     srl $a3 $a3 27
+    blt $a3 $a0 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
@@ -914,7 +910,7 @@ magic_done:
     sll $a3 $a3 7
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
@@ -927,7 +923,7 @@ magic_done:
     sll $a3 $a3 12
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
@@ -940,7 +936,7 @@ magic_done:
     sll $a3 $a3 17
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
@@ -953,7 +949,7 @@ magic_done:
     sll $a3 $a3 22
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
@@ -966,7 +962,7 @@ magic_done:
     sll $a3 $a3 27
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 wait_todie
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
@@ -1029,7 +1025,7 @@ wait_todie:
 
 magic_bread:
     lw $t0 GET_MONEY
-    blt $t0 20 wait_todie
+    blt $t0 20 interrupt_dispatch
     li $t0 0
     li $t1 0
     magic_loop:
