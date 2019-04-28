@@ -51,6 +51,7 @@ appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
 shared:      .word 0:2
+order:       .word 0:24
 
 .text
 j main
@@ -76,17 +77,24 @@ search_right:
     sb $t1 0($t2)
     jr $ra
 
+get_order:
+    la $t0, order
+    sw $t0, GET_TURNIN_ORDER
+    sw $t0, SET_REQUEST
+
 main:
     li  $t9, '#' #!!!!!!!warning: don't use t9
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
+    or      $t4, $t4, TIMER_INT_MASK
 	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
 	or      $t4, $t4, 1 # global enable
 	mtc0    $t4, $12
 	
 	#Fill in your code here
     jal get_appliance
+    # jal get_order
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
     jal move_south

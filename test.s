@@ -505,7 +505,7 @@ move_right:
 move_right_loop:
     lw $t2, BOT_X($0)
     sub $t2, $t2, $t1
-    beq $t2, 10, move_right_return
+    beq $t2, 20, move_right_return
     li $t0, 1
     sw $0, ANGLE($0)
     sw $t0, ANGLE_CONTROL($0)
@@ -522,7 +522,7 @@ move_down:
 move_down_loop:
     lw $t2, BOT_Y($0)
     sub $t2, $t2, $t1
-    beq $t2, 10, move_down_return
+    beq $t2, 20, move_down_return
     li $t0, 1
     li $t2, 90
     sw $t2, ANGLE($0)
@@ -540,7 +540,7 @@ move_left:
 move_left_loop:
     lw $t2, BOT_X($0)
     sub $t2, $t2, $t1
-    beq $t2, -10, move_left_return
+    beq $t2, -20, move_left_return
     li $t0, 1
     li $t2, 180
     sw $t2, ANGLE($0)
@@ -558,7 +558,7 @@ move_up:
 move_up_loop:
     lw $t2, BOT_Y($0)
     sub $t2, $t2, $t1
-    beq $t2, -10, move_up_return
+    beq $t2, -20, move_up_return
     li $t0, 1
     li $t2, 270
     sw $t2, ANGLE($0)
