@@ -91,7 +91,13 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
-    li $s2 0
+    la $t1 request
+    li $t0 1764173471
+    sw $t0 4($t1)
+    li $t0 35636716367
+    sw $t0 0($t1)
+    sw $t1 SET_REQUEST
+    li $s3 0
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
