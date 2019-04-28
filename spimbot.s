@@ -88,6 +88,7 @@ choose_ing:
     beq $t0, 4, app_oven
     beq $t0, 5, app_sink
     beq $t0, 6, app_chop
+    j return_fetch
 app_oven:
     sll $t1, 2, 16
     add $t1, $t1, 1
