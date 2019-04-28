@@ -1013,14 +1013,15 @@ submit_order:
     # sw $t0 0xffff0080($0)
 submit_continue:  
     move $s3 $t0
-    lw $t0 GET_MONEY
-    blt $t0 20 wait_todie
+    
     jr $ra
 
 wait_todie:
     j wait_todie
 
 magic_bread:
+    lw $t0 GET_MONEY
+    blt $t0 20 wait_todie
     li $t0 0
     li $t1 0
     magic_loop:
