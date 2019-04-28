@@ -45,10 +45,17 @@ GET_SHARED 				= 0xffff004c
 GET_BOOST 				= 0xffff0070
 GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
+PRINT_INT_ADDR = 0xffff0080
 
 puzzle:      .word 0:452
 layout:      .byte 0:225
-order:       .word 0:2
+order:       .word 0:6
+appliance0:  .byte 1
+appliance1:  .byte 1
+bx:          .word 1
+by:          .word 1
+
+
 .text
 j main
 
@@ -60,13 +67,42 @@ main:
 	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
 	or      $t4, $t4, 1 # global enable
 	mtc0    $t4, $12
-	
+	sub $sp $sp 4
+    sw $ra 0($sp)
 	#Fill in your code here
+
+    jal get_appliance
+    lw $ra 0($sp)
+
     la $t0, puzzle
     sw $t0, REQUEST_PUZZLE
+     
+
+
+
 request_puzzle:
     j request_puzzle
-
+# get_appliance
+get_appliance:
+    la $t0 layout
+    sw $t0 GET_LAYOUT
+    lw $t1 BOT_X
+    bgt $t1 150 search_right
+    lb $t1 32($t0)
+    la $t2 appliance1
+    sb $t1 0($t2)
+    lb $t1 35($t0)
+    la $t2 appliance0
+    sb $t1 0($t2)
+    jr $ra
+search_right:
+    lb $t1 39($t0)
+    la $t2 appliance0
+    sb $t1 0($t2)
+    lb $t1 42($t0)
+    la $t2 appliance1
+    sb $t1 0($t2)
+    jr $ra
 .kdata
 chunkIH:    .space 48
 non_intrpt_str:    .asciiz "Non-interrupt exception\n"
