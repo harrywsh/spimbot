@@ -242,10 +242,10 @@ interrupt_dispatch:            # Interrupt:
     and        $a0, $k0, TIMER_INT_MASK    # is there a timer interrupt?
     bne        $a0, 0, timer_interrupt
 
+    bnez     $s6, submit
+
 	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
 	bne 	$a0, 0, request_puzzle_interrupt
-
-    bnez     $s6, submit
 
     # li        $v0, PRINT_STRING    # Unhandled interrupt types
     # la        $a0, unhandled_str
@@ -765,9 +765,6 @@ return_fetch:
     jr $ra
 
 submit:
-    sub $sp $sp 8
-    sw $s0 0($sp)
-    sw $s1 4($sp)
     la $s0 order
     sw $s0 GET_TURNIN_ORDER
     lw $t0 BOT_X
