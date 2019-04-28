@@ -45,7 +45,7 @@ GET_SHARED 				= 0xffff004c
 GET_BOOST 				= 0xffff0070
 GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
-
+PRINT_INT_ADDR=0xffff0080
 puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
@@ -538,7 +538,7 @@ kkmove_south_loop:
     # beqz    $t2, move_end
     lw      $t2, BOT_Y
     sub     $t2, $t2, $t1
-    blt     $t2, 5, kkmove_south_loop
+    blt     $t2, 8, kkmove_south_loop
     j		kmove_end
 ######
 request_puzzle_interrupt:
@@ -784,71 +784,83 @@ right_subimit:
     sw $t0 ANGLE_CONTROL
     #set angle
     
-    lw $s1 20($s0)
+    lw $s1 4($s0)
     ###$a2 the angel to pickup
     #s1 is the 20 offset int#
     ####bread######
     sll $a0 $s1 4
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 0
     jal pick_up_loads
     ####cheese######
     sll $a0 $s1 9
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
     ####raw meat######
     sll $a0 $s1 14
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
     ####meat######
     sll $a0 $s1 19
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
     ####burnt meat######
     sll $a0 $s1 24
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
     ####unwashed tomatoes######
     sll $a0 $s1 29
     srl $a0 $a0 27
     sll $a0 $a0 2
-    lw $s1 16($s0)
+    lw $s1 0($s0)
     srl $t0 $s1 29
     add $a0 $a0 $t0
+    # sw $a0 PRINT_INT_ADDR
     li $a1 196608
     jal pick_up_loads
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
     ####uncut onions######
     sll $a0 $s1 7
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
     ####onions######
     sll $a0 $s1 12
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
     ####Unwashed Unchopped Lettuce######
     sll $a0 $s1 17
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
     ####Unchopped Lettuce######
     sll $a0 $s1 22
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
     ####Lettuce######
-    sll $a0 $s1 17
+    sll $a0 $s1 27
     srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
     jal submit_order
@@ -868,65 +880,78 @@ left_submit:
     ####bread######
     sll $a0 $s1 4
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 0
     jal pick_up_loads
     ####cheese######
     sll $a0 $s1 9
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
     ####raw meat######
     sll $a0 $s1 14
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
     ####meat######
     sll $a0 $s1 19
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
     ####burnt meat######
     sll $a0 $s1 24
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
     ####unwashed tomatoes######
     sll $a0 $s1 29
     srl $a0 $a0 27
     sll $a0 $a0 2
+    
     lw $s1 16($s0)
     srl $t0 $s1 29
     add $a0 $a0 $t0
+    sw $a0 PRINT_INT_ADDR
     li $a1 196608
     jal pick_up_loads
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
     ####uncut onions######
     sll $a0 $s1 7
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
     ####onions######
     sll $a0 $s1 12
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
     ####Unwashed Unchopped Lettuce######
     sll $a0 $s1 17
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
     ####Unchopped Lettuce######
     sll $a0 $s1 22
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
     ####Lettuce######
     sll $a0 $s1 17
     srl $a0 $a0 27
+    sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
     jal submit_order
