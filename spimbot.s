@@ -47,9 +47,33 @@ GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 puzzle:      .word 0:452
+appliance0:  .byte 1
+appliance1:  .byte 1
+layout:      .byte 0:225
 
 .text
 j main
+
+get_appliance:
+    la $t0 layout
+    sw $t0 GET_LAYOUT
+    lw $t1 BOT_X
+    bgt $t1 150 search_right
+    lb $t1 32($t0)
+    la $t2 appliance1
+    sb $t1 0($t2)
+    lb $t1 35($t0)
+    la $t2 appliance0
+    sb $t1 0($t2)
+    jr $ra
+search_right:
+    lb $t1 39($t0)
+    la $t2 appliance0
+    sb $t1 0($t2)
+    lb $t1 42($t0)
+    la $t2 appliance1
+    sb $t1 0($t2)
+    jr $ra
 
 main:
     li  $t9, '#' #!!!!!!!warning: don't use t9
@@ -61,6 +85,7 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    jal get_appliance
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
     jal move_south
@@ -165,6 +190,7 @@ move_south_loop:
     j		move_end
 ######
 
+
 .kdata
 chunkIH:    .space 48
 non_intrpt_str:    .asciiz "Non-interrupt exception\n"
@@ -266,7 +292,8 @@ right_go_next:
     j       end_bonk
 right_return_appliance:
     #### get INGREDIENT first
-    #jal     get
+    li $a0, 0
+    jal     fetch_item
     li      $t0, 280
     sw      $t0, ANGLE
     li      $t0, 1
@@ -323,7 +350,8 @@ left_go_next:
     j       end_bonk
 left_return_appliance:
     #### get INGREDIENT first
-    #jal     get
+    li $a0, 0
+    jal     fetch_item
     li      $t0, 260
     sw      $t0, ANGLE
     li      $t0, 1
@@ -509,3 +537,55 @@ move_back_endloop:
     sw      $0, VELOCITY
     jr      $ra
 #######
+
+####################################################################################
+# grab ingredients needed to the appointed appliance                               #
+#                                                                                  #
+# behaves according to the position of bot (left half/ right half)                 #
+# @param $a0: the destination appliance, 0 for the one nearer from shared counter, #
+# 1 for the one farther from shared counter.                                       #
+####################################################################################
+fetch_item:
+    beq $a0, 1, farther_app
+    la $t0, appliance0
+    lb $t0, 0($t0)
+    j choose_ing
+farther_app:
+    la $t0, appliance1
+    lb $t0, 0($t0)
+choose_ing:
+    beq $t0, 4, app_oven
+    beq $t0, 5, app_sink
+    beq $t0, 6, app_chop
+    j return_fetch
+app_oven:
+    li $t1, 2
+    sll $t1, $t1, 16
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    j return_fetch
+app_sink:
+    li $t1, 3
+    sll $t1, $t1, 16              # pick unwashed tomato
+    add $t1, $t1, 1
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    li $t1, 5
+    sll $t1, $t1, 16              # pick unwashed unchopped tomato
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    j return_fetch
+app_chop:
+    li $t1, 4
+    sll $t1, $t1, 16              # pick unchopped onion
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+    li $t1, 5
+    sll $t1, $t1, 16              # pick unchopped lettuce
+    add $t1, $t1, 1
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+return_fetch:
+    jr $ra
