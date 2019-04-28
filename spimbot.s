@@ -61,10 +61,109 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
-    la $t0, puzzle
-    sw $t0, REQUEST_PUZZLE
-request_puzzle:
-    j request_puzzle
+    lw      $t0, BOT_X
+    blt     $t0, 150, run_left
+    jal move_south
+    jal move_south
+    jal move_west
+    jal move_south
+    la  $t0, puzzle
+    sw  $t0, REQUEST_PUZZLE
+    ##move west to start
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    ##end move
+    j       start
+run_left:
+    jal move_south
+    jal move_south
+    jal move_east
+    jal move_south
+    la  $t0, puzzle
+    sw  $t0, REQUEST_PUZZLE
+    ##move west to start
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    ##end move
+start:
+    li      $t7, 4 ### reserve t7!!!
+infinite:
+    j infinite
+
+#####movement
+move_east:
+    lw      $t1, BOT_X
+    #li     $t0, 0
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+move_east_loop:
+    # lw      $t2, VELOCITY
+    # beqz    $t2, move_end
+    lw      $t2, BOT_X
+    sub     $t2, $t2, $t1
+    blt     $t2, 20, move_east_loop
+move_end:
+    sw      $0, VELOCITY
+    jr      $ra
+
+move_west:
+    lw      $t1, BOT_X
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+move_west_loop:
+    # lw      $t2, VELOCITY
+    # beqz    $t2, move_end
+    lw      $t2, BOT_X
+    sub     $t2, $t1, $t2
+    blt     $t2, 20, move_west_loop
+    j		move_end
+
+move_north:
+    lw      $t1, BOT_Y
+    li      $t0, 270
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+move_north_loop:
+    # lw      $t2, VELOCITY
+    # beqz    $t2, move_end
+    lw      $t2, BOT_Y
+    sub     $t2, $t1, $t2
+    blt     $t2, 20, move_north_loop
+    j		move_end
+
+move_south:
+    lw      $t1, BOT_Y
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+move_south_loop:
+    # lw      $t2, VELOCITY
+    # beqz    $t2, move_end
+    lw      $t2, BOT_Y
+    sub     $t2, $t2, $t1
+    blt     $t2, 20, move_south_loop
+    j		move_end
+######
 
 .kdata
 chunkIH:    .space 48
@@ -118,6 +217,123 @@ interrupt_dispatch:            # Interrupt:
 bonk_interrupt:
 	sw 		$0, BONK_ACK
     #Fill in your code here
+    lw      $t0, BOT_X
+    blt     $t0, 150, bonk_left
+bonk_right:
+    lw      $a0, BOT_X      # X coordinate @a0
+    beq     $a0, 160, right_else_counter
+    beq     $t7, -1, start_work
+right_bins:
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    ##move west to start
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j		end_bonk
+right_else_counter:
+    sw      $0, DROPOFF
+    li      $t0, 1
+    sw      $t0, DROPOFF
+    li      $t0, 2
+    sw      $t0, DROPOFF
+    li      $t0, 3
+    sw      $t0, DROPOFF
+    addi    $t7, -1
+    beqz    $t7, right_go_next
+    ##move east
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j		end_bonk
+right_go_next:
+    lw      $a1, BOT_Y      # Y coordinate @a0
+    bge     $a1, 170, right_return_appliance
+    li      $t0, 33
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, 4
+    j       end_bonk
+right_return_appliance:
+    #### get INGREDIENT first
+    #jal     get
+    li      $t0, 280
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, -1
+    j       end_bonk
+    
+bonk_left:
+    lw      $a0, BOT_X      # X coordinate @a0
+    beq     $a0, 139, left_else_counter
+    beq     $t7, -1, start_work
+left_bins:
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    sw      $t0, PICKUP
+    ##move east to start
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j		end_bonk
+left_else_counter:
+    sw      $0, DROPOFF
+    li      $t0, 1
+    sw      $t0, DROPOFF
+    li      $t0, 2
+    sw      $t0, DROPOFF
+    li      $t0, 3
+    sw      $t0, DROPOFF
+    addi    $t7, -1
+    beqz    $t7, left_go_next
+    ##move west
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j		end_bonk
+left_go_next:
+    lw      $a1, BOT_Y      # Y coordinate @a0
+    bge     $a1, 170, left_return_appliance
+    li      $t0, 147
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, 4
+    j       end_bonk
+left_return_appliance:
+    #### get INGREDIENT first
+    #jal     get
+    li      $t0, 260
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, -1
+    j		end_bonk
+start_work:
+end_bonk:
     j       interrupt_dispatch    # see if other interrupts are waiting
 
 request_puzzle_interrupt:
@@ -260,3 +476,36 @@ return_marker:
 return_short:
     move $v0, $a1
     jr	$ra
+
+#######
+move_back_10:
+    lw      $t1, BOT_Y
+    lw      $t2, BOT_X
+    li      $t0, 180
+    sw      $t0, ANGLE
+    sw      $0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+move_back_loop:
+    lw      $t0, ANGLE
+    beq     $t0, 90, move_set_y
+    beq     $t0, 270, move_set_y
+    lw      $t3, BOT_X
+    move    $t0, $t2
+    j       move_judge
+move_set_y:
+    lw      $t3, BOT_Y
+    move    $t0, $t1
+move_judge:
+    blt     $t3, $t0, move_not_swap
+    move    $t4, $t3
+    move    $t3, $t0
+    move    $t0, $t4
+move_not_swap:
+    sub     $t4, $t0, $t3
+    bge     $t4, 10, move_back_endloop
+    j		move_back_loop    
+move_back_endloop:
+    sw      $0, VELOCITY
+    jr      $ra
+#######
