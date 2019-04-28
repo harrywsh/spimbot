@@ -50,7 +50,8 @@ puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
-order:       .word 2
+order:       .word 6
+shared:      .word 2   
 .text
 j main
 
@@ -776,10 +777,15 @@ submit:
     sw $s0 GET_TURNIN_ORDER
     lw $t0 BOT_X
     ble  $t0 150 left_submit
-
-right_subimit:
+    
+right_submit:
     li $a2 180
     sw $a2 ANGLE
+    j real_submit
+left_submit:
+    li $a2 0
+    sw $a2 ANGLE
+real_submit:
     li $t0 1
     sw $t0 ANGLE_CONTROL
     #set angle
@@ -788,11 +794,18 @@ right_subimit:
     ###$a2 the angel to pickup
     #s1 is the 20 offset int#
     ####bread######
+    la $a3 shared
+    sll $a3 $a3 4
+    srl $a3 $a3 27
     sll $a0 $s1 4
     srl $a0 $a0 27
+    sub $a3 $a0 $a3
+
     # sw $a0 PRINT_INT_ADDR
     li $a1 0
     jal pick_up_loads
+    bgtz $a3 magic_bread
+magic_done:
     ####cheese######
     sll $a0 $s1 9
     srl $a0 $a0 27
@@ -867,97 +880,6 @@ right_subimit:
     j end_bonk
 
 
-left_submit:
-    li $a2 0
-    sw $a2 ANGLE
-    li $t0 1
-    sw $t0 ANGLE_CONTROL
-    #set angle
-    
-    lw $s1 20($s0)
-    ###$a2 the angel to pickup
-    #s1 is the 20 offset int#
-    ####bread######
-    sll $a0 $s1 4
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 0
-    jal pick_up_loads
-    ####cheese######
-    sll $a0 $s1 9
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 65536
-    jal pick_up_loads
-    ####raw meat######
-    sll $a0 $s1 14
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 131072
-    jal pick_up_loads
-    ####meat######
-    sll $a0 $s1 19
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 131073
-    jal pick_up_loads
-    ####burnt meat######
-    sll $a0 $s1 24
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 131074
-    jal pick_up_loads
-    ####unwashed tomatoes######
-    sll $a0 $s1 29
-    srl $a0 $a0 27
-    sll $a0 $a0 2
-    
-    lw $s1 16($s0)
-    srl $t0 $s1 29
-    add $a0 $a0 $t0
-    sw $a0 PRINT_INT_ADDR
-    li $a1 196608
-    jal pick_up_loads
-    ####washed tomatoes######
-    sll $a0 $s1 2
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 196609
-    jal pick_up_loads
-    ####uncut onions######
-    sll $a0 $s1 7
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 262144
-    jal pick_up_loads
-    ####onions######
-    sll $a0 $s1 12
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 262145
-    jal pick_up_loads
-    ####Unwashed Unchopped Lettuce######
-    sll $a0 $s1 17
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 327680
-    jal pick_up_loads
-    ####Unchopped Lettuce######
-    sll $a0 $s1 22
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 327681
-    jal pick_up_loads
-    ####Lettuce######
-    sll $a0 $s1 17
-    srl $a0 $a0 27
-    sw $a0 PRINT_INT_ADDR
-    li $a1 327682
-    jal pick_up_loads
-    jal submit_order
-    j end_bonk
-
-
 pick_up_loads:
         li $t1 0    #$t3 i
         li $t2 0
@@ -1003,3 +925,12 @@ submit_order:
     sw $t0 ANGLE_CONTROL
     sw $t0 SUBMIT_ORDER
     jr $ra
+
+magic_bread:
+    li $t0 0
+    li $t1 0
+    magic_loop:
+        bge $t0 $a3 magic_done
+        sw $t1 GET_INGREDIENT_INSTANT
+        add $t0 $t0 1
+        j magic_loop 
