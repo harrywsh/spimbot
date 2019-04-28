@@ -50,6 +50,7 @@ puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
+shared:      .word 0:2
 
 .text
 j main
@@ -546,6 +547,21 @@ move_back_endloop:
 # 1 for the one farther from shared counter.                                       #
 ####################################################################################
 fetch_item:
+    la $t0, shared
+    sw $t0, GET_SHARED
+    add $t1, $t0, 4
+    lw $t0, 0($t0)              # lo bits
+    lw $t1, 0($t1)              # hi bits
+    srl $t2, $t1, 13
+    and $t2, $t2, 0x1f          # $t2: raw meat count
+    srl $t3, $t0, 30
+    and $t4, $t1, 0x7
+    sll $t4, $t4, 2
+    add $t3, $t4, $t3           # $t3: unwashed tomatoes count
+    srl $t4, $t0, 20            
+    and $t4, $t4, 0x1f          # $t4: uncut onion count
+    srl $t5, $t0, 10
+    and $t5, $t5, 0x1f          # $t5: unwashed uncut lettuce count
     beq $a0, 1, farther_app
     la $t0, appliance0
     lb $t0, 0($t0)
@@ -559,29 +575,57 @@ choose_ing:
     beq $t0, 6, app_chop
     j return_fetch
 app_oven:
+    beqz $t2, generate_meat
     li $t1, 2
     sll $t1, $t1, 16
     sw $t1, PICKUP
     sw $t1, PICKUP
     sw $t1, PICKUP
     sw $t1, PICKUP
+generate_meat:
+    li $t1, 2
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
+
 app_sink:
+    beqz $t3, generate_tomato
     li $t1, 3
     sll $t1, $t1, 16              # pick unwashed tomato
-    add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
+    j not_generate_tomato
+generate_tomato:
+    li $t1, 3
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+not_generate_tomato:
+    beqz $t5, generate_lettuce
     li $t1, 5
-    sll $t1, $t1, 16              # pick unwashed unchopped tomato
+    sll $t1, $t1, 16              # pick unwashed unchopped lettuce
     sw $t1, PICKUP
     sw $t1, PICKUP
     j return_fetch
+generate_lettuce:
+    li $t1, 5
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    j return_fetch
+    
 app_chop:
+    beqz $t4, generate_onion
     li $t1, 4
     sll $t1, $t1, 16              # pick unchopped onion
     sw $t1, PICKUP
     sw $t1, PICKUP
+    j not_generate_onion
+generate_onion:
+    li $t1, 4
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+not_generate_onion:
     li $t1, 5
     sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
