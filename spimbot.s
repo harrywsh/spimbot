@@ -242,8 +242,6 @@ interrupt_dispatch:            # Interrupt:
     and        $a0, $k0, TIMER_INT_MASK    # is there a timer interrupt?
     bne        $a0, 0, timer_interrupt
 
-    bnez     $s6, submit
-
 	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
 	bne 	$a0, 0, request_puzzle_interrupt
 
@@ -507,6 +505,7 @@ i_inner_end:
 i_outer_end:
     ########
     sw  $a0, SUBMIT_SOLUTION
+    bnez     $s6, submit
 	j	interrupt_dispatch
 
 timer_interrupt:
