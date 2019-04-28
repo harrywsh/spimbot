@@ -46,8 +46,8 @@ GET_BOOST 				= 0xffff0070
 GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
-MAX_ITERATION           = 6
-MAX_TIME                = 8801505
+MAX_ITERATION           = 7
+MAX_TIME                = 9250000
 
 puzzle:      .word 0:452
 appliance0:  .byte 1
@@ -56,7 +56,7 @@ layout:      .byte 0:225
 shared:      .word 0:2
 order:       .word 6
 score:       .word 2
-
+request:     .word 2
 .text
 j main
 
@@ -91,6 +91,13 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    la $t1 request
+    li $t0 1764173471
+    sw $t0 4($t1)
+    li $t0 35636716367
+    sw $t0 0($t1)
+    sw $t1 SET_REQUEST
+    
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
@@ -129,6 +136,7 @@ start:
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
     li      $s6, 0 ### reserve s6!!!
+    li      $s5, 0 ### RESERVE S5!!!
 infinite:
     j infinite
 
@@ -290,6 +298,9 @@ right_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    # sw      $0, GET_BOOST
+    # sw      $0, GET_BOOST
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch
 right_continue_work:
     bltz    $t7, right_return_work
@@ -318,9 +329,13 @@ right_return_work:
     move     $a0, $s7
     jal     fetch_item
     bnez    $s7, right_return_work_long
+    li      $t0, 0x00020009
+    sw      $t0, SET_TILE
     li      $t0, 342
     j		right_return_work_endif
 right_return_work_long:
+    li      $t0, 0x0002000c
+    sw      $t0, SET_TILE
     li      $t0, 354
 right_return_work_endif:
     sw      $t0, ANGLE
@@ -329,6 +344,7 @@ right_return_work_endif:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_appliance:
     #### get INGREDIENT first
@@ -341,6 +357,8 @@ right_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    li      $t0, 0x00020009
+    sw      $t0, SET_TILE
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_start_work:
     li      $t0, 270
@@ -349,6 +367,7 @@ right_start_work:
     sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
+    lw      $s5, GET_TILE_INFO
     sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 #### left    
@@ -384,6 +403,9 @@ left_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    # sw      $0, GET_BOOST
+    # sw      $0, GET_BOOST
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch
 left_continue_work:
     bltz    $t7, left_return_work
@@ -413,9 +435,13 @@ left_return_work:
     move    $a0, $s7
     jal     fetch_item
     bnez    $s7, left_return_work_long
+    li      $t0, 0x00020005
+    sw      $t0, SET_TILE
     li      $t0, 198
     j		left_return_work_endif
 left_return_work_long:
+    li      $t0, 0x00020002
+    sw      $t0, SET_TILE
     li      $t0, 186
 left_return_work_endif:
     sw      $t0, ANGLE
@@ -424,6 +450,7 @@ left_return_work_endif:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_appliance:
     #### get INGREDIENT first
@@ -436,6 +463,8 @@ left_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    li      $t0, 0x00020005
+    sw      $t0, SET_TILE
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_start_work:
     li      $t0, 270
@@ -444,12 +473,13 @@ left_start_work:
     sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    sw      $t0, FINISH_APPLIANCE_INSTANT
+#    sw      $t0, FINISH_APPLIANCE_INSTANT
+    lw      $s5, GET_TILE_INFO
     sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 bonk_submit:
     li      $s6, 1
-    jal submit
+    jal     submit
     j interrupt_dispatch
 
 request_puzzle_interrupt:
@@ -505,19 +535,25 @@ i_inner_end:
 i_outer_end:
     ########
     sw  $a0, SUBMIT_SOLUTION
-    bnez     $s6, submit
+    bnez     $s6, real_submit
 	j	interrupt_dispatch
 
 timer_interrupt:
 	sw 		$0, TIMER_ACK
 	#Fill in your code here
+    lw      $t0, GET_TILE_INFO
+    sub     $t0, $t0, $s5
+    bnez    $t0, timer_pickup
+    sw      $0, FINISH_APPLIANCE_INSTANT
+timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
     beq     $t7, -5, timer_return
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    sw      $t0, FINISH_APPLIANCE_INSTANT
+#    sw      $t0, FINISH_APPLIANCE_INSTANT
+    lw      $s5, GET_TILE_INFO
     sw      $0, TIMER
     j	    interrupt_dispatch
 
@@ -713,8 +749,8 @@ app_oven:
     sw $t1, PICKUP
 generate_meat:
     li $t1, 2
-    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     # sw $t1, GET_INGREDIENT_INSTANT
     # sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
@@ -729,7 +765,7 @@ app_sink:
 generate_tomato:
     li $t1, 3
     sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
 not_generate_tomato:
     beqz $t5, generate_lettuce
     li $t1, 5
@@ -740,7 +776,7 @@ not_generate_tomato:
 generate_lettuce:
     li $t1, 5
     sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
     
 app_chop:
@@ -752,7 +788,7 @@ app_chop:
     j not_generate_onion
 generate_onion:
     li $t1, 4
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
 not_generate_onion:
     li $t1, 5
@@ -884,6 +920,12 @@ magic_done:
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 2
+    srl $a3 $a3 27
+    blt $a3 $a0 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
@@ -999,16 +1041,15 @@ submit_order:
     sw $t0 ANGLE
     li $t0 1
     sw $t0 ANGLE_CONTROL
-    sw $t0 SUBMIT_ORDER
-    
-    la $t0 score
-    lw $t0 0($t0)
-    sub $t0 $t0 $s3
-    bgez $t0 submit_continue
+    sw $t0 SUBMIT_ORDER  
+    # la $t0 score
+    # sw $t0 0xffff1018($0)
+    # lw $t0 0($t0)
     # sw $t0 0xffff0080($0)
-submit_continue:  
-    move $s3 $t0
     jr $ra
+
+wait_todie:
+    j wait_todie
 
 magic_bread:
     lw $t0 GET_MONEY
