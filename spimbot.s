@@ -122,7 +122,7 @@ run_left:
     ##end move
 start:
     jal get_appliance
-    li      $t7, 4 ### reserve t7!!!
+    li      $t7, MAX_ITERATION ### reserve t7!!!
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
 infinite:
