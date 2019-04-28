@@ -47,7 +47,7 @@ GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 MAX_ITERATION           = 6
-MAX_TIME                = 8801505
+MAX_TIME                = 9200000
 
 puzzle:      .word 0:452
 appliance0:  .byte 1
