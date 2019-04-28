@@ -47,12 +47,14 @@ GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 MAX_ITERATION           = 6
+MAX_TIME                = 8801505
 
 puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
 shared:      .word 0:2
+order:       .word 6
 
 .text
 j main
@@ -249,6 +251,8 @@ interrupt_dispatch:            # Interrupt:
 bonk_interrupt:
 	sw 		$0, BONK_ACK
     #Fill in your code here
+    lw      $t0, BOT_Y
+    bge     $t0, 275, bonk_submit
     lw      $t0, BOT_X
     blt     $t0, 150, bonk_left
 bonk_right:
@@ -276,6 +280,16 @@ right_counter:
     sw      $t0, DROPOFF
     li      $t0, 3
     sw      $t0, DROPOFF
+    lw      $t0, TIMER
+    blt     $t0, MAX_TIME, right_continue_work
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j       interrupt_dispatch
+right_continue_work:
     bltz    $t7, right_return_work
     addi    $t7, -1
     beqz    $t7, right_go_next_bin
@@ -361,6 +375,17 @@ left_counter:
     sw      $t0, DROPOFF
     li      $t0, 3
     sw      $t0, DROPOFF
+    lw      $t0, TIMER
+    # sw      $t0, 0xffff0080($0)
+    blt     $t0, MAX_TIME, left_continue_work
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j       interrupt_dispatch
+left_continue_work:
     bltz    $t7, left_return_work
     addi    $t7, -1
     beqz    $t7, left_go_next_bin
@@ -423,6 +448,9 @@ left_start_work:
     li      $t0, 1000
     sw      $t0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
+bonk_submit:
+    jal submit
+    j interrupt_dispatch
 
 request_puzzle_interrupt:
 	sw 		$0, REQUEST_PUZZLE_ACK
@@ -708,6 +736,7 @@ not_generate_tomato:
     sll $t1, $t1, 16              # pick unwashed unchopped lettuce
     sw $t1, PICKUP
     sw $t1, PICKUP
+    # sw $t1, PICKUP
     j return_fetch
 generate_lettuce:
     li $t1, 5
@@ -734,3 +763,177 @@ not_generate_onion:
     sw $t1, PICKUP
 return_fetch:
     jr $ra
+
+submit:
+    sub $sp $sp 8
+    sw $s0 0($sp)
+    sw $s1 4($sp)
+    la $s0 order
+    sw $s0 GET_TURNIN_ORDER
+    lw $t0 BOT_X
+    ble  $t0 150 left_submit
+    
+right_submit:
+    li $a2 180
+    sw $a2 ANGLE
+    j real_submit
+left_submit:
+    li $a2 0
+    sw $a2 ANGLE
+real_submit:
+    li $t0 1
+    sw $t0 ANGLE_CONTROL
+    #set angle
+    
+    lw $s1 4($s0)
+    ###$a2 the angel to pickup
+    #s1 is the 20 offset int#
+    ####bread######
+
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 4($a3)
+    sll $a3 $a3 4
+    srl $a3 $a3 27
+    sw $a3 0xffff0080($0)   
+    sll $a0 $s1 4
+    srl $a0 $a0 27
+    sub $a3 $a0 $a3
+    sw $a3 0xffff0080($0)
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 0
+    jal pick_up_loads
+    bgtz $a3 magic_bread
+magic_done:
+    ####cheese######
+    sll $a0 $s1 9
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 65536
+    jal pick_up_loads
+    ####raw meat######
+    sll $a0 $s1 14
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 131072
+    jal pick_up_loads
+    ####meat######
+    sll $a0 $s1 19
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 131073
+    jal pick_up_loads
+    ####burnt meat######
+    sll $a0 $s1 24
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 131074
+    jal pick_up_loads
+    ####unwashed tomatoes######
+    sll $a0 $s1 29
+    srl $a0 $a0 27
+    sll $a0 $a0 2
+    lw $s1 0($s0)
+    srl $t0 $s1 29
+    add $a0 $a0 $t0
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 196608
+    jal pick_up_loads
+    ####washed tomatoes######
+    sll $a0 $s1 2
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 196609
+    jal pick_up_loads
+    ####uncut onions######
+    sll $a0 $s1 7
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 262144
+    jal pick_up_loads
+    ####onions######
+    sll $a0 $s1 12
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 262145
+    jal pick_up_loads
+    ####Unwashed Unchopped Lettuce######
+    sll $a0 $s1 17
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 327680
+    jal pick_up_loads
+    ####Unchopped Lettuce######
+    sll $a0 $s1 22
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 327681
+    jal pick_up_loads
+    ####Lettuce######
+    sll $a0 $s1 27
+    srl $a0 $a0 27
+    # sw $a0 PRINT_INT_ADDR
+    li $a1 327682
+    jal pick_up_loads
+    jal submit_order
+    j submit
+
+
+pick_up_loads:
+        li $t1 0    #$t3 i
+        li $t2 0
+        li $t3 0
+    pick_up_loops:
+        bge $t1 $a0 end_pick_up 
+        bge $t2 4 drop_loads
+    once:    
+        sw  $a1 PICKUP
+        add $t1 $t1 1
+        add $t2 $t2 1
+        j pick_up_loops
+        end_pick_up:
+        li $t3 1
+        j drop_loads
+    drop_loads:
+        li $t0 90
+        sw $t0 ANGLE
+        li $t0 1
+        sw $t0 ANGLE_CONTROL
+        li $t0 0
+        sw $t0 DROPOFF
+        li $t0 1
+        sw $t0 DROPOFF
+        li $t0 2
+        sw $t0 DROPOFF
+        li $t0 3
+        sw $t0 DROPOFF
+        li $t2 0
+        sw $a2 ANGLE
+        li $t0 1
+        sw $t0 ANGLE_CONTROL
+        beq $t3 0 back_to_load 
+        jr $ra
+    back_to_load:
+        j once
+
+submit_order:
+    # j submit_order 
+    li $t0 90
+    sw $t0 ANGLE
+    li $t0 1
+    sw $t0 ANGLE_CONTROL
+    sw $t0 SUBMIT_ORDER
+    lw $t0 GET_MONEY
+    blt $t0 20 wait_todie
+    jr $ra
+wait_todie:
+    j wait_todie
+
+magic_bread:
+    li $t0 0
+    li $t1 0
+    magic_loop:
+        bge $t0 $a3 magic_done
+        sw $t1 GET_INGREDIENT_INSTANT
+        add $t0 $t0 1
+        j magic_loop 
