@@ -47,7 +47,7 @@ GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 MAX_ITERATION           = 6
-MAX_TIME                = 8801505
+MAX_TIME                = 9200000
 
 puzzle:      .word 0:452
 appliance0:  .byte 1
@@ -57,7 +57,6 @@ shared:      .word 0:2
 order:       .word 6
 score:       .word 2
 request:     .word 2
-
 .text
 j main
 
@@ -92,6 +91,14 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    la $t1 request
+    li $t0 1764173471
+    sw $t0 4($t1)
+    li $t0 35636716367
+    sw $t0 0($t1)
+    sw $t1 SET_REQUEST
+    
+    li $s3 0
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
@@ -885,6 +892,12 @@ magic_done:
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 2
+    srl $a3 $a3 27
+    blt $a3 $a0 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
@@ -1000,16 +1013,15 @@ submit_order:
     sw $t0 ANGLE
     li $t0 1
     sw $t0 ANGLE_CONTROL
-    sw $t0 SUBMIT_ORDER
-    
-    la $t0 score
-    lw $t0 0($t0)
-    sub $t0 $t0 $s3
-    bgez $t0 submit_continue
+    sw $t0 SUBMIT_ORDER  
+    # la $t0 score
+    # sw $t0 0xffff1018($0)
+    # lw $t0 0($t0)
     # sw $t0 0xffff0080($0)
-submit_continue:  
-    move $s3 $t0
     jr $ra
+
+wait_todie:
+    j wait_todie
 
 magic_bread:
     lw $t0 GET_MONEY
