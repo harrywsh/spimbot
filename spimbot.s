@@ -46,12 +46,13 @@ GET_BOOST 				= 0xffff0070
 GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
+MAX_ITERATION           = 6
+
 puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
 shared:      .word 0:2
-order:       .word 0:24
 
 .text
 j main
@@ -77,26 +78,19 @@ search_right:
     sb $t1 0($t2)
     jr $ra
 
-get_order:
-    la $t0, order
-    sw $t0, GET_TURNIN_ORDER
-    sw $t0, SET_REQUEST
-
 main:
-    li  $t9, '#' #!!!!!!!warning: don't use t9
 	# Construct interrupt mask
 	li      $t4, 0
 	or      $t4, $t4, BONK_INT_MASK # request bonk
-    or      $t4, $t4, TIMER_INT_MASK
+    or      $t4, $t4, TIMER_INT_MASK	        # timer interrupt bit
 	or      $t4, $t4, REQUEST_PUZZLE_INT_MASK	        # puzzle interrupt bit
 	or      $t4, $t4, 1 # global enable
 	mtc0    $t4, $12
 	
 	#Fill in your code here
-    jal get_appliance
-    # jal get_order
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
+# run_right:
     jal move_south
     jal move_south
     jal move_west
@@ -127,7 +121,10 @@ run_left:
     sw      $t0, ANGLE_CONTROL
     ##end move
 start:
-    li      $t7, 4 ### reserve t7!!!
+    jal get_appliance
+    li      $t7, MAX_ITERATION ### reserve t7!!!
+    li      $t9, '#' #!!!!!!!warning: don't use t9
+    li      $s7, 0 ### reserve s7!!!
 infinite:
     j infinite
 
@@ -256,8 +253,8 @@ bonk_interrupt:
     blt     $t0, 150, bonk_left
 bonk_right:
     lw      $a0, BOT_X      # X coordinate @a0
-    beq     $a0, 160, right_else_counter
-    beq     $t7, -1, start_work
+    beq     $a0, 160, right_counter
+    beq     $t7, -1, right_start_work
 right_bins:
     sw      $t0, PICKUP
     sw      $t0, PICKUP
@@ -270,8 +267,8 @@ right_bins:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    j		end_bonk
-right_else_counter:
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_counter:
     sw      $0, DROPOFF
     li      $t0, 1
     sw      $t0, DROPOFF
@@ -279,16 +276,17 @@ right_else_counter:
     sw      $t0, DROPOFF
     li      $t0, 3
     sw      $t0, DROPOFF
+    bltz    $t7, right_return_work
     addi    $t7, -1
-    beqz    $t7, right_go_next
+    beqz    $t7, right_go_next_bin
     ##move east
     sw      $0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    j		end_bonk
-right_go_next:
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_go_next_bin:
     lw      $a1, BOT_Y      # Y coordinate @a0
     bge     $a1, 170, right_return_appliance
     li      $t0, 33
@@ -297,11 +295,28 @@ right_go_next:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7, 4
-    j       end_bonk
+    li      $t7,  MAX_ITERATION
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_return_work:
+    xor     $s7, $s7, 1
+    move     $a0, $s7
+    jal     fetch_item
+    bnez    $s7, right_return_work_long
+    li      $t0, 315
+    j		right_return_work_endif
+right_return_work_long:
+    li      $t0, 342
+right_return_work_endif:
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, -1
+    j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_appliance:
     #### get INGREDIENT first
-    li $a0, 0
+    li      $a0, 0
     jal     fetch_item
     li      $t0, 280
     sw      $t0, ANGLE
@@ -310,12 +325,22 @@ right_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
-    j       end_bonk
-    
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_start_work:
+    li      $t0, 270
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    add		$t0, $t7, 4
+    sw      $t0, DROPOFF
+    li      $t0, 50000
+    sw      $t0, TIMER
+    j       interrupt_dispatch    # see if other interrupts are waiting
+#### left    
 bonk_left:
     lw      $a0, BOT_X      # X coordinate @a0
-    beq     $a0, 139, left_else_counter
-    beq     $t7, -1, start_work
+    beq     $a0, 139, left_counter
+    beq     $t7, -1, left_start_work
 left_bins:
     sw      $t0, PICKUP
     sw      $t0, PICKUP
@@ -327,8 +352,8 @@ left_bins:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    j		end_bonk
-left_else_counter:
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_counter:
     sw      $0, DROPOFF
     li      $t0, 1
     sw      $t0, DROPOFF
@@ -336,8 +361,9 @@ left_else_counter:
     sw      $t0, DROPOFF
     li      $t0, 3
     sw      $t0, DROPOFF
+    bltz    $t7, left_return_work
     addi    $t7, -1
-    beqz    $t7, left_go_next
+    beqz    $t7, left_go_next_bin
     ##move west
     li      $t0, 180
     sw      $t0, ANGLE
@@ -345,8 +371,8 @@ left_else_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    j		end_bonk
-left_go_next:
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_go_next_bin:
     lw      $a1, BOT_Y      # Y coordinate @a0
     bge     $a1, 170, left_return_appliance
     li      $t0, 147
@@ -355,11 +381,28 @@ left_go_next:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7, 4
-    j       end_bonk
+    li      $t7,  MAX_ITERATION
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_return_work:
+    xor     $s7, $s7, 1
+    move    $a0, $s7
+    jal     fetch_item
+    bnez    $s7, left_return_work_long
+    li      $t0, 225
+    j		left_return_work_endif
+left_return_work_long:
+    li      $t0, 198
+left_return_work_endif:
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t7, -1
+    j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_appliance:
     #### get INGREDIENT first
-    li $a0, 0
+    li      $a0, 0
     jal     fetch_item
     li      $t0, 260
     sw      $t0, ANGLE
@@ -368,14 +411,24 @@ left_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
-    j		end_bonk
-start_work:
-end_bonk:
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_start_work:
+    li      $t0, 270
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    add		$t0, $t7, 4
+    sw      $t0, DROPOFF
+    sw      $t0, FINISH_APPLIANCE_INSTANT
+    li      $t0, 1000
+    sw      $t0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 
 request_puzzle_interrupt:
 	sw 		$0, REQUEST_PUZZLE_ACK
 	#Fill in your code here
+    # lw $t0, GET_MONEY
+    # bge $t0, 100, interrupt_dispatch
     la  $a0, puzzle
     sw  $a0, REQUEST_PUZZLE
     #######
@@ -429,7 +482,49 @@ i_outer_end:
 timer_interrupt:
 	sw 		$0, TIMER_ACK
 	#Fill in your code here
-    j        interrupt_dispatch    # see if other interrupts are waiting
+    add		$t0, $t7, 4
+    sw      $t0, PICKUP
+    addi    $t7, $t7, -1
+    beq     $t7, -5, timer_return
+    add		$t0, $t7, 4
+    sw      $t0, DROPOFF
+    sw      $t0, FINISH_APPLIANCE_INSTANT
+    li      $t0, 1000
+    sw      $t0, TIMER
+    j	    interrupt_dispatch
+
+timer_return:
+    lw      $t0, BOT_X
+    blt     $t0, 150, timer_left
+    bnez    $s7, timer_right_long
+    ##short return
+    li      $t0, 135
+    j       timer_right_return
+timer_right_long:
+    ##long return
+    li      $t0, 162
+timer_right_return:
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
+timer_left:
+    bnez    $s7, timer_left_long
+    ##short return
+    li      $t0, 45
+    j       timer_left_return
+timer_left_long:
+    ##long return
+    li      $t0, 18
+timer_left_return:
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
 
 non_intrpt:                # was some non-interrupt
     li        $v0, PRINT_STRING
@@ -588,14 +683,12 @@ app_oven:
     sll $t1, $t1, 16
     sw $t1, PICKUP
     sw $t1, PICKUP
-    sw $t1, PICKUP
-    sw $t1, PICKUP
 generate_meat:
     li $t1, 2
+    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
 
 app_sink:
@@ -608,7 +701,7 @@ app_sink:
 generate_tomato:
     li $t1, 3
     sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
 not_generate_tomato:
     beqz $t5, generate_lettuce
     li $t1, 5
@@ -619,7 +712,7 @@ not_generate_tomato:
 generate_lettuce:
     li $t1, 5
     sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
     
 app_chop:
@@ -631,7 +724,7 @@ app_chop:
     j not_generate_onion
 generate_onion:
     li $t1, 4
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
 not_generate_onion:
     li $t1, 5
