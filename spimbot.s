@@ -52,6 +52,7 @@ puzzle:      .word 0:452
 appliance0:  .byte 1
 appliance1:  .byte 1
 layout:      .byte 0:225
+shared:      .word 0:2
 
 .text
 j main
@@ -380,16 +381,17 @@ left_return_work:
     move    $a0, $s7
     jal     fetch_item
     bnez    $s7, left_return_work_else
-    li      $t0, 198
+    li      $t0, 225
     j		left_return_work_endif
 left_return_work_else:
-    li      $t0, 186
+    li      $t0, 198
 left_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    li      $t7, -1
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_appliance:
     #### get INGREDIENT first
@@ -482,6 +484,7 @@ timer_return:
     bnez    $s7, timer_right_long
     ##short return
     li      $t0, 162
+    j       timer_right_return
 timer_right_long:
     ##long return
     li      $t0, 174
@@ -494,12 +497,13 @@ timer_right_return:
     nor     $s7, $s7, $0
     j       interrupt_dispatch    # see if other interrupts are waiting
 timer_left:
-    bnez    $s7, timer_left_long
+    bnez    $s7, timer_left_short
+    ##long return
+    li      $t0, 45
+    j       timer_left_return
+timer_left_short:
     ##short return
     li      $t0, 18
-timer_left_long:
-    ##long return
-    li      $t0, 7
 timer_left_return:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -633,6 +637,21 @@ move_back_endloop:
 # 1 for the one farther from shared counter.                                       #
 ####################################################################################
 fetch_item:
+    la $t0, shared
+    sw $t0, GET_SHARED
+    add $t1, $t0, 4
+    lw $t0, 0($t0)              # lo bits
+    lw $t1, 0($t1)              # hi bits
+    srl $t2, $t1, 13
+    and $t2, $t2, 0x1f          # $t2: raw meat count
+    srl $t3, $t0, 30
+    and $t4, $t1, 0x7
+    sll $t4, $t4, 2
+    add $t3, $t4, $t3           # $t3: unwashed tomatoes count
+    srl $t4, $t0, 20            
+    and $t4, $t4, 0x1f          # $t4: uncut onion count
+    srl $t5, $t0, 10
+    and $t5, $t5, 0x1f          # $t5: unwashed uncut lettuce count
     beq $a0, 1, farther_app
     la $t0, appliance0
     lb $t0, 0($t0)
@@ -646,29 +665,57 @@ choose_ing:
     beq $t0, 6, app_chop
     j return_fetch
 app_oven:
+    beqz $t2, generate_meat
     li $t1, 2
     sll $t1, $t1, 16
     sw $t1, PICKUP
     sw $t1, PICKUP
     sw $t1, PICKUP
     sw $t1, PICKUP
+generate_meat:
+    li $t1, 2
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
+
 app_sink:
+    beqz $t3, generate_tomato
     li $t1, 3
     sll $t1, $t1, 16              # pick unwashed tomato
-    add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
+    j not_generate_tomato
+generate_tomato:
+    li $t1, 3
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+not_generate_tomato:
+    beqz $t5, generate_lettuce
     li $t1, 5
-    sll $t1, $t1, 16              # pick unwashed unchopped tomato
+    sll $t1, $t1, 16              # pick unwashed unchopped lettuce
     sw $t1, PICKUP
     sw $t1, PICKUP
     j return_fetch
+generate_lettuce:
+    li $t1, 5
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+    j return_fetch
+    
 app_chop:
+    beqz $t4, generate_onion
     li $t1, 4
     sll $t1, $t1, 16              # pick unchopped onion
     sw $t1, PICKUP
     sw $t1, PICKUP
+    j not_generate_onion
+generate_onion:
+    li $t1, 4
+    sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
+not_generate_onion:
     li $t1, 5
     sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
