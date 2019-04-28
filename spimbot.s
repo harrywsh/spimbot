@@ -91,6 +91,7 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    li $s2 0
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
@@ -508,7 +509,6 @@ i_outer_end:
 timer_interrupt:
 	sw 		$0, TIMER_ACK
 	#Fill in your code here
-timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
@@ -516,7 +516,7 @@ timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
     sw      $t0, FINISH_APPLIANCE_INSTANT
-    j       timer_pickup
+    sw      $0, TIMER
     j	    interrupt_dispatch
 
 timer_return:
@@ -1009,14 +1009,14 @@ submit_order:
     # sw $t0 0xffff0080($0)
 submit_continue:  
     move $s3 $t0
-    lw $t0 GET_MONEY
-    blt $t0 20 wait_todie
     jr $ra
 
 wait_todie:
     j wait_todie
 
 magic_bread:
+    lw $t0 GET_MONEY
+    blt $t0 20 wait_todie
     li $t0 0
     li $t1 0
     magic_loop:
