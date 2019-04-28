@@ -90,7 +90,8 @@ choose_ing:
     beq $t0, 6, app_chop
     j return_fetch
 app_oven:
-    sll $t1, 2, 16
+    li $t1, 2
+    sll $t1, $t1, 16
     add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
@@ -98,19 +99,23 @@ app_oven:
     sw $t1, PICKUP
     j return_fetch
 app_sink:
-    sll $t1, 3, 16              # pick unwashed tomato
+    li $t1, 3
+    sll $t1, $t1, 16              # pick unwashed tomato
     add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
-    sll $t1, 5, 16              # pick unwashed unchopped tomato
+    li $t1, 5
+    sll $t1, $t1, 16              # pick unwashed unchopped tomato
     sw $t1, PICKUP
     sw $t1, PICKUP
     j return_fetch
 app_chop:
-    sll $t1, 4, 16              # pick unchopped onion
+    li $t1, 4
+    sll $t1, $t1, 16              # pick unchopped onion
     sw $t1, PICKUP
     sw $t1, PICKUP
-    sll $t1, 5, 16              # pick unchopped lettuce
+    li $t1, 5
+    sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
