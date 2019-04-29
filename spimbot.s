@@ -107,8 +107,6 @@ main:
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
-    la		$t0, puzzle
-    sw      $t0, REQUEST_PUZZLE
     j       start
 run_left:
     li      $t0, 10
@@ -117,8 +115,6 @@ run_left:
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
-    la		$t0, puzzle
-    sw      $t0, REQUEST_PUZZLE
 start:
     jal get_appliance
     li      $t7, MAX_ITERATION ### reserve t7!!!
@@ -126,6 +122,8 @@ start:
     li      $s7, 0 ### reserve s7!!!
     li      $s6, 0 ### reserve s6!!!
     li      $s5, 0 ### RESERVE S5!!!
+    la		$t0, puzzle
+    sw      $t0, REQUEST_PUZZLE
 infinite:
     j infinite
 
