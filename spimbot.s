@@ -581,9 +581,7 @@ done:
 floodfill:
     lb      $t3, 8($t2)
     bne $t3, $t9, return_short
-    bltz $a2, return_short
     bltz $a3, return_short
-    beq $a2, $t4, return_short
     beq $a3, $t5, return_short
 floodfill_real:
     sb $a1, 8($t2)                  # board[row][col] = marker;
@@ -602,6 +600,7 @@ floodfill_real:
     jal floodfill
 
     addi $a2, $a2, 1
+    beq $a2, $t4, floodfill_cont1
     add $t2, $t2, $t5
     jal floodfill
     addi $a3, $a3, -1
@@ -611,9 +610,10 @@ floodfill_real:
     addi $t2, $t2, -1
     jal floodfill
 
+    sub $t2, $t2, $t5
     addi $a2, $a2, -2
     sub $t2, $t2, $t5
-    sub $t2, $t2, $t5
+    bltz $a2, floodfill_cont2
     jal floodfill
     addi $a3, $a3, 1
     addi $t2, $t2, 1
@@ -621,7 +621,7 @@ floodfill_real:
     addi $a3, $a3, 1 
     addi $t2, $t2, 1  
     jal floodfill
-
+floodfill_cont2:
     lw $t2, 12($sp)
     lw $a3, 8($sp)
     lw $a2, 4($sp)
@@ -629,6 +629,18 @@ floodfill_real:
     addi $sp, $sp, 16
 return_short:
     jr	$ra
+floodfill_cont1:
+    addi $a2, $a2, -2
+    sub $t2, $t2, $t5
+    bltz $a2, floodfill_cont2
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, -1 
+    addi $t2, $t2, -1  
+    jal floodfill
+    j   floodfill_cont2
 
 floodfill_safe:
     mul     $t2, $a2, $t5
