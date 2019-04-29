@@ -760,12 +760,238 @@ request_puzzle_interrupt:
         lw      $t4, 0($a0)#row
         lw      $t5, 4($a0)#col
 
-        # beq     $t5, 32, i_outer_end
-
         # move    $t8, $a0    #warning: reserve $t8!!!
         mul     $t6, $t4, $t5  #warning: reserve $t6!!! size
         add     $t6, $t6, $a0   # base address -8 for bitboard
+
+        bne     $t5, 32, i_outer_loop
+
+        i_outer_loop_32:
+        beq     $a2, $t4, i_outer_end #a2=i
+        mul     $t0, $a2, $t5 #entrance for each row
+        add     $t8, $t0, $a0 #puzzleboard -8
+        li      $a3, 0 #a3=j
+        # get the address of the current bitboard jump
+        lbu      $t0, 8($t6)
+        sll     $t0, $t0, 2
+        add     $s3, $s4, $t0
+
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else11
+        jal     floodfill_safe
+        add     $a1 $a1 1
+
+puzzle_line_32_else11:
+        lb      $t1, 0($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else12
+        jal     floodfill_safe
+        add     $a1 $a1 1
+puzzle_line_32_else12:
+        lb      $t1, 1($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block2 ###
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else13
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else13:
+        lb      $t1, 2($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block2
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else14
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else14:
+        lb      $t1, 3($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block2
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_32_block2
+        jal     floodfill_safe
+        add $a1 $a1 1
+
+puzzle_32_block2:
+        lbu      $t0, 9($t6)
+        sll     $t0, $t0, 2
+        add     $s3, $s4, $t0
+
+        add     $a3, $a3, 1
+        add     $t8, $t8, 1
         
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else21
+        jal     floodfill_safe
+        add $a1 $a1 1
+
+puzzle_line_32_else21:
+        lb      $t1, 0($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else22
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else22:
+        lb      $t1, 1($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block3 ###
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else23
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else23:
+        lb      $t1, 2($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block3
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else24
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else24:
+        lb      $t1, 3($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block3
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_32_block3
+        jal     floodfill_safe
+        add $a1 $a1 1
+
+puzzle_32_block3:
+        add     $a3, $a3, 1
+        add     $t8, $t8, 1
+        
+        lbu      $t0, 10($t6)
+        sll     $t0, $t0, 2
+        add     $s3, $s4, $t0
+        
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else31
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else31:
+        lb      $t1, 0($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else32
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else32:
+        lb      $t1, 1($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block4 ###
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else33
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else33:
+        lb      $t1, 2($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block4
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else34
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else34:
+        lb      $t1, 3($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_32_block4
+        add     $a3, $a3, $t1
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_32_block4
+        jal     floodfill_safe
+        add $a1 $a1 1
+
+puzzle_32_block4:
+        add     $a3, $a3, 1
+        add     $t8, $t8, 1
+        
+        lbu      $t0, 11($t6)
+        sll     $t0, $t0, 2
+        add     $s3, $s4, $t0
+        
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else41
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else41:
+        lb      $t1, 0($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        add     $a3, $a3, $t1
+        #bge     $a3  $t5 puzzle_line_32_end_short
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else42
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else42:
+        lb      $t1, 1($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_line_32_end ###
+        add     $a3, $a3, $t1
+        #bge     $a3  $t5 puzzle_line_32_end_short
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else43
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else43:
+        lb      $t1, 2($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_line_32_end
+        add     $a3, $a3, $t1
+        #bge     $a3  $t5 puzzle_line_32_end_short
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_else44
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_else44:
+        lb      $t1, 3($s3)
+        # sb      $t1 PRINT_INT_ADDR
+        beqz    $t1, puzzle_line_32_end
+        add     $a3, $a3, $t1
+        #bge     $a3  $t5 puzzle_line_32_end_short
+        add     $t8, $t8, $t1
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, puzzle_line_32_end
+        jal     floodfill_safe
+        add $a1 $a1 1
+puzzle_line_32_end:
+        add     $t6, 4
+i_inner_end_32:
+        # sw $t9 PRINT_INT_ADDR
+        add     $a2, $a2, 1
+        j       i_outer_loop_32
+# puzzle_line_32_end_short:
+#         add     $t6, 3
+#         add     $a2, $a2, 1
+#         j       i_outer_loop_32
+
 i_outer_loop:
         beq     $a2, $t4, i_outer_end #a2=i
         mul     $t0, $a2, $t5 #entrance for each row
@@ -983,7 +1209,6 @@ puzzle_line_else44:
         add $a1 $a1 1
 
 puzzle_block5:
-        beq     $t5, 32, puzzle_line_end_short####### ble
         add     $a3, $a3, 1
         add     $t8, $t8, 1
         
@@ -1038,9 +1263,6 @@ puzzle_line_else54:
         bne     $t0, $t9, puzzle_line_end
         jal     floodfill_safe
         add $a1 $a1 1
-puzzle_line_end_short:
-        add     $t6, 4
-        j       i_inner_end
 puzzle_line_end:
         add     $t6, 5
 i_inner_end:
