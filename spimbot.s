@@ -46,7 +46,7 @@ GET_BOOST 				= 0xffff0070
 GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
-MAX_ITERATION           = 7
+MAX_ITERATION           = 6
 MAX_TIME                = 9250000
 
 puzzle:      .word 0:452
@@ -299,8 +299,6 @@ right_counter:
     li      $t0, 10
     sw      $t0, VELOCITY
     # sw      $0, GET_BOOST
-    # sw      $0, GET_BOOST
-    # sw      $0, GET_BOOST
     j       interrupt_dispatch
 right_continue_work:
     bltz    $t7, right_return_work
@@ -403,8 +401,6 @@ left_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    # sw      $0, GET_BOOST
-    # sw      $0, GET_BOOST
     # sw      $0, GET_BOOST
     j       interrupt_dispatch
 left_continue_work:
@@ -535,7 +531,7 @@ i_inner_end:
 i_outer_end:
     ########
     sw  $a0, SUBMIT_SOLUTION
-    bnez     $s6, real_submit
+    bnez     $s6, submit
 	j	interrupt_dispatch
 
 timer_interrupt:
