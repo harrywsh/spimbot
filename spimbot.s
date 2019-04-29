@@ -470,8 +470,8 @@ i_inner_loop:
         lb      $t0, 8($t8)
         bne     $t0, $t9, else1
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill
-        move    $a1, $v0
+        jal     floodfill_safe
+        add    $a1, $a1, 1
         add     $a3, $a3, 1
         beq     $a3, $t5, i_inner_end_long
         j       else2
@@ -482,8 +482,8 @@ else1:
         lb      $t0, 9($t8)
         bne     $t0, $t9, else2
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill
-        move    $a1, $v0
+        jal     floodfill_safe
+        add    $a1, $a1, 1
 else2:
         add     $t8, $t8, 2
         add     $a3, $a3, 1
@@ -579,62 +579,62 @@ done:
     eret
 
 floodfill:
-    mul     $t2, $a2, $t5
-    add     $t2, $t2, $a3
-    add     $t2, $t2, $a0
     lb      $t3, 8($t2)
     bne $t3, $t9, return_short
     bltz $a2, return_short
     bltz $a3, return_short
     beq $a2, $t4, return_short
     beq $a3, $t5, return_short
-
+floodfill_real:
     sb $a1, 8($t2)                  # board[row][col] = marker;
 
-    sub $sp, $sp, 12
+    sub $sp, $sp, 16
     sw $ra, 0($sp)
     sw $a2, 4($sp)
     sw $a3, 8($sp)
+    sw $t2, 12($sp)
+
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, 2
+    addi $t2, $t2, 2
+    jal floodfill
 
     addi $a2, $a2, 1
+    add $t2, $t2, $t5
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+
+    addi $a2, $a2, -2
+    sub $t2, $t2, $t5
+    sub $t2, $t2, $t5
+    jal floodfill
     addi $a3, $a3, 1
+    addi $t2, $t2, 1
     jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-
-    addi $a2, $a2, -1
-    addi $a3, $a3, 2
-    jal floodfill
-    addi $a3, $a3, -2
+    addi $a3, $a3, 1 
+    addi $t2, $t2, 1  
     jal floodfill
 
-    addi $a2, $a2, -1
-    addi $a3, $a3, 2
-    jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-
-return_marker_1:
-    addi $v0, $a1, 1
+    lw $t2, 12($sp)
     lw $a3, 8($sp)
     lw $a2, 4($sp)
     lw $ra, 0($sp)
-    addi $sp, $sp, 12
-	jr	$ra                         # return marker + 1;
-return_marker:
-    move $v0, $a1
-    lw $a3, 8($sp)
-    lw $a2, 4($sp)
-    lw $ra, 0($sp)
-    addi $sp, $sp, 12
-	jr	$ra                         # return marker;
+    addi $sp, $sp, 16
 return_short:
-    move $v0, $a1
     jr	$ra
+
+floodfill_safe:
+    mul     $t2, $a2, $t5
+    add     $t2, $t2, $a3
+    add     $t2, $t2, $a0
+    j       floodfill_real
 
 ####################################################################################
 # grab ingredients needed to the appointed appliance                               #
