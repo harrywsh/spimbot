@@ -101,35 +101,24 @@ main:
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
-    jal move_south
-    jal move_south
-    jal move_west
-    jal move_south
-    la  $t0, puzzle
-    sw  $t0, REQUEST_PUZZLE
-    ##move west to start
     li      $t0, 10
     sw      $t0, VELOCITY
-    sw      $0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    ##end move
-    j       start
-run_left:
-    jal move_south
-    jal move_south
-    jal move_east
-    jal move_south
-    la  $t0, puzzle
-    sw  $t0, REQUEST_PUZZLE
-    ##move west to start
-    li      $t0, 10
-    sw      $t0, VELOCITY
-    li      $t0, 180
+    li      $t0, 101
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
-    ##end move
+    la		$t0, puzzle
+    sw      $t0, REQUEST_PUZZLE
+    j       start
+run_left:
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 79
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    la		$t0, puzzle
+    sw      $t0, REQUEST_PUZZLE
 start:
     jal get_appliance
     li      $t7, MAX_ITERATION ### reserve t7!!!
@@ -139,75 +128,6 @@ start:
     li      $s5, 0 ### RESERVE S5!!!
 infinite:
     j infinite
-
-#####movement
-move_east:
-    lw      $t1, BOT_X
-    #li     $t0, 0
-    sw      $0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_east_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_X
-    sub     $t2, $t2, $t1
-    blt     $t2, 20, move_east_loop
-move_end:
-    sw      $0, VELOCITY
-    jr      $ra
-
-move_west:
-    lw      $t1, BOT_X
-    li      $t0, 180
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_west_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_X
-    sub     $t2, $t1, $t2
-    blt     $t2, 20, move_west_loop
-    j		move_end
-
-move_north:
-    lw      $t1, BOT_Y
-    li      $t0, 270
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_north_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_Y
-    sub     $t2, $t1, $t2
-    blt     $t2, 20, move_north_loop
-    j		move_end
-
-move_south:
-    lw      $t1, BOT_Y
-    li      $t0, 90
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_south_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_Y
-    sub     $t2, $t2, $t1
-    blt     $t2, 20, move_south_loop
-    j		move_end
-######
-
 
 .kdata
 chunkIH:    .space 48
@@ -269,11 +189,12 @@ bonk_right:
     lw      $a0, BOT_X      # X coordinate @a0
     beq     $a0, 160, right_counter
     beq     $t7, -1, right_start_work
+    bge     $a0, 280, right_first_bonk
 right_bins:
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
     ##move west to start
     li      $t0, 180
     sw      $t0, ANGLE
@@ -281,6 +202,30 @@ right_bins:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_first_bonk:
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 500
+right_first_bonk_loop:
+    add		$t0, $t0, -1
+    bnez    $t0, right_first_bonk_loop   
+    li      $t0, 175
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL  
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_counter:
     sw      $0, DROPOFF
@@ -373,17 +318,41 @@ bonk_left:
     lw      $a0, BOT_X      # X coordinate @a0
     beq     $a0, 139, left_counter
     beq     $t7, -1, left_start_work
+    blt     $a0, 20, left_first_bonk
 left_bins:
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
     ##move east to start
     sw      $0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_first_bonk:
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 500
+left_first_bonk_loop:
+    add		$t0, $t0, -1
+    bnez    $t0, left_first_bonk_loop   
+    li      $t0, 5
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL  
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_counter:
     sw      $0, DROPOFF
@@ -668,39 +637,6 @@ return_marker:
 return_short:
     move $v0, $a1
     jr	$ra
-
-#######
-move_back_10:
-    lw      $t1, BOT_Y
-    lw      $t2, BOT_X
-    li      $t0, 180
-    sw      $t0, ANGLE
-    sw      $0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_back_loop:
-    lw      $t0, ANGLE
-    beq     $t0, 90, move_set_y
-    beq     $t0, 270, move_set_y
-    lw      $t3, BOT_X
-    move    $t0, $t2
-    j       move_judge
-move_set_y:
-    lw      $t3, BOT_Y
-    move    $t0, $t1
-move_judge:
-    blt     $t3, $t0, move_not_swap
-    move    $t4, $t3
-    move    $t3, $t0
-    move    $t0, $t4
-move_not_swap:
-    sub     $t4, $t0, $t3
-    bge     $t4, 10, move_back_endloop
-    j		move_back_loop    
-move_back_endloop:
-    sw      $0, VELOCITY
-    jr      $ra
-#######
 
 ####################################################################################
 # grab ingredients needed to the appointed appliance                               #
@@ -1043,10 +979,7 @@ submit_order:
     # lw $t0 0($t0)
     # sw $t0 0xffff0080($0)
     jr $ra
-
-wait_todie:
-    j wait_todie
-
+    
 magic_bread:
     lw $t0 GET_MONEY
     blt $t0 20 interrupt_dispatch
