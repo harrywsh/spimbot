@@ -557,7 +557,7 @@ right_go_next_bin:
     sw      $t0, VELOCITY
     jal     adjust_fetch
     move    $t7, $v0
-    sw      $0, GET_BOOST
+    #sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_work:
     xor     $s7, $s7, 1
@@ -689,7 +689,7 @@ left_go_next_bin:
     sw      $t0, VELOCITY
     jal     adjust_fetch
     move    $t7, $v0
-    sw      $0, GET_BOOST
+    #sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_work:
     xor     $s7, $s7, 1
@@ -775,9 +775,6 @@ puzzle_32_block0:
 ######prepare jumptable
 lbu     $t0, 8($t8)
 # sw      $t0 0xffff0080
-bne     $t0 247 cont
-nop
-cont:
 sll     $t0, $t0, 2
 add     $s3, $s4, $t0              #s4 : jumpboard base address
 ######
@@ -951,9 +948,6 @@ puzzle_32_jump3_0:
 lb      $t1, 0($s3)
 add     $a3, $a3, $t1
 add     $t6, $t6, $t1
-bne     $t1 6 con
-nop
-con:
 beq     $a3, $s2, puzzle_32_line_end
 lb      $t0, 8($t6)
 bne     $t0, $t9, puzzle_32_jump3_1
@@ -1495,14 +1489,22 @@ app_chop:
     sw $t1, PICKUP
     j not_generate_onion
 generate_onion:
-    li $t1, 4
-    sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
     li $t1, 5
     sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
+    la $t0 shared
+    sw $t0 GET_SHARED
+    lw $t0 0($t0)
+    sll $t0 $t0 12
+    srl $t0 $t0 27
+    bge $t0, 20, not_generate_onion_instant
+    li $t1, 4
+    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
+    j  not_generate_onion
+not_generate_onion_instant:
     sw $t1, PICKUP
 not_generate_onion:
     li $t1, 5
@@ -1554,6 +1556,7 @@ real_submit:
     beq $t3 4 Burnt_meat
     beq $t3 5 Unwashed_tomatoes
     beq $t3 6 Washed_tomatoes
+
     lw $s1 0($s0)
     beq $t3 7 Uncut_onions
     beq $t3 8 Oninons
@@ -1570,14 +1573,28 @@ Bread:
     # sw $a3 0xffff0080($0)   
     sll $a0 $s1 4
     srl $a0 $a0 27
+
     sub $a3 $a0 $a3
+    
+    li $a1 0
+    blez $a3 subs
+    sub $a0 $a0 $a3
+    # sw $a0 0xffff0080
+subs:
+    jal pick_up_loads
+
+
+    mul $s2 $a3 20
     # sw $a3 0xffff0080($0)
     # sw $a0 PRINT_INT_ADDR
-    li $a1 0
-    jal pick_up_loads
     bgtz $a3 magic_bread
-     
+    # sw  $a3 0xffff0080
+   
 magic_done:
+    
+    # bgtz $a3 magic_bread
+     
+
     add $t3 $t3 1
 Cheese:
     ####cheese######
@@ -1629,7 +1646,6 @@ Meat:
     add $t3 $t3 1
 Burnt_meat:
     ####burnt meat######
-    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -1756,27 +1772,25 @@ Unchopped_Lettuce:
     add $t3 $t3 1
 Lettuce:
     ####Lettuce######
+    la $s0 order
+    sw $s0 GET_TURNIN_ORDER
+    lw $s1 0($s0)
+
     sll $a0 $s1 27
     srl $a0 $a0 27
     # sw $a0 0xffff0080
-    nop
-    nop
     # add $t0 $t0 $0
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 0($a3)
-    
     sll $a3 $a3 27
     srl $a3 $a3 27
-    # add $t0 $t0 $0
-    nop
-    nop
+
+    add $t0 $t0 $0
     # sw $a3 0xffff0080
     sub $a3 $a0 $a3
     # add $t0 $t0 $0
     # sw $a3 0xffff0080
-    nop
-    nop
     bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327682
@@ -1791,7 +1805,7 @@ pick_up_loads:
         li $t4 0
     pick_up_loops:
         bge $t1 $a0 end_pick_up 
-        bge $t2 4 drop_loads
+        bge $t2 3 drop_loads
     once:    
         sw  $a1 PICKUP
         add $t1 $t1 1
@@ -1839,7 +1853,7 @@ submit_order:
     
 magic_bread:
     lw $t0 GET_MONEY
-    blt $t0 40 interrupt_dispatch
+    blt $t0 $s2 interrupt_dispatch
     li $t0 0
     li $t1 0
     magic_loop:
