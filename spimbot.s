@@ -99,22 +99,22 @@ main:
     sw $t1 SET_REQUEST
     
     lw      $t0, BOT_X
-    blt     $t0, 150, run_left
-# run_right:
-    li      $t0, 10
-    sw      $t0, VELOCITY
-    li      $t0, 101
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    j       start
-run_left:
-    li      $t0, 10
-    sw      $t0, VELOCITY
-    li      $t0, 79
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
+#     blt     $t0, 150, run_left
+# # run_right:
+#     li      $t0, 10
+#     sw      $t0, VELOCITY
+#     li      $t0, 101
+#     sw      $t0, ANGLE
+#     li      $t0, 1
+#     sw      $t0, ANGLE_CONTROL
+#     j       start
+# run_left:
+#     li      $t0, 10
+#     sw      $t0, VELOCITY
+#     li      $t0, 79
+#     sw      $t0, ANGLE
+#     li      $t0, 1
+#     sw      $t0, ANGLE_CONTROL
 start:
     jal get_appliance
     li      $t7, MAX_ITERATION ### reserve t7!!!
@@ -470,7 +470,8 @@ i_inner_loop:
         lb      $t0, 8($t8)
         bne     $t0, $t9, else1
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill_safe
+        add     $t2, $t8, 0
+        jal     floodfill_real
         add    $a1, $a1, 1
         add     $a3, $a3, 1
         beq     $a3, $t5, i_inner_end_long
@@ -482,7 +483,8 @@ else1:
         lb      $t0, 9($t8)
         bne     $t0, $t9, else2
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill_safe
+        add     $t2, $t8, 1
+        jal     floodfill_real
         add    $a1, $a1, 1
 else2:
         add     $t8, $t8, 2
@@ -641,12 +643,6 @@ floodfill_cont1:
     addi $t2, $t2, -1  
     jal floodfill
     j   floodfill_cont2
-
-floodfill_safe:
-    mul     $t2, $a2, $t5
-    add     $t2, $t2, $a3
-    add     $t2, $t2, $a0
-    j       floodfill_real
 
 ####################################################################################
 # grab ingredients needed to the appointed appliance                               #
