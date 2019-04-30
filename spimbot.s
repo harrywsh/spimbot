@@ -99,22 +99,22 @@ main:
     sw $t1 SET_REQUEST
     
     lw      $t0, BOT_X
-#     blt     $t0, 150, run_left
-# # run_right:
-#     li      $t0, 10
-#     sw      $t0, VELOCITY
-#     li      $t0, 101
-#     sw      $t0, ANGLE
-#     li      $t0, 1
-#     sw      $t0, ANGLE_CONTROL
-#     j       start
-# run_left:
-#     li      $t0, 10
-#     sw      $t0, VELOCITY
-#     li      $t0, 79
-#     sw      $t0, ANGLE
-#     li      $t0, 1
-#     sw      $t0, ANGLE_CONTROL
+    blt     $t0, 150, run_left
+# run_right:
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 101
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    j       start
+run_left:
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 79
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
 start:
     jal get_appliance
     li      $t7, MAX_ITERATION ### reserve t7!!!
