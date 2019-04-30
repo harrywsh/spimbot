@@ -396,12 +396,16 @@ start:
     li $t7, MAX_ITERATION
     beq $t0, 7, initial_bread
     beq $t0, 11, initial_cheese
+    beq $t0, 12, initial_onion
     j initial_normal
 initial_bread:
     add $t7, $t7, 2
     j initial_normal
 initial_cheese:
     add $t7, $t7, -2
+    j initial_normal
+initial_onion:
+    add $t7, $t7, -1
     j initial_normal
 initial_normal:
     # li      $t7, MAX_ITERATION ### reserve t7!!!
@@ -553,6 +557,7 @@ right_go_next_bin:
     sw      $t0, VELOCITY
     jal     adjust_fetch
     move    $t7, $v0
+    sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_work:
     xor     $s7, $s7, 1
@@ -684,6 +689,7 @@ left_go_next_bin:
     sw      $t0, VELOCITY
     jal     adjust_fetch
     move    $t7, $v0
+    sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_work:
     xor     $s7, $s7, 1
@@ -1467,7 +1473,7 @@ app_sink:
 generate_tomato:
     li $t1, 3
     sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
 not_generate_tomato:
     beqz $t5, generate_lettuce
     li $t1, 5
@@ -1478,7 +1484,7 @@ not_generate_tomato:
 generate_lettuce:
     li $t1, 5
     sw $t1, GET_INGREDIENT_INSTANT
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
     
 app_chop:
@@ -1486,17 +1492,22 @@ app_chop:
     li $t1, 4
     sll $t1, $t1, 16              # pick unchopped onion
     sw $t1, PICKUP
-    # sw $t1, PICKUP
+    sw $t1, PICKUP
     j not_generate_onion
 generate_onion:
     li $t1, 4
-    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
-not_generate_onion:
+    # sw $t1, GET_INGREDIENT_INSTANT
     li $t1, 5
     sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
     sw $t1, PICKUP
+    sw $t1, PICKUP
+    sw $t1, PICKUP
+not_generate_onion:
+    li $t1, 5
+    sll $t1, $t1, 16              # pick unchopped lettuce
+    add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
 return_fetch:
@@ -1837,6 +1848,11 @@ magic_bread:
         add $t0 $t0 1
         j magic_loop 
 
+wait_to_die:
+    la $t0 stage
+    sw $t3 0($t0)
+    j interrupt_dispatch
+
 adjust_fetch:
     lw $t0, BOT_Y
     li $t2, 2
@@ -1857,6 +1873,7 @@ judge_bin:
     li $v0, MAX_ITERATION
     beq $t2, 7, return_bread
     beq $t2, 11, return_cheese
+    beq $t2, 12, return_onion
     j return_normal
 return_bread:
     add $v0, $v0, 2
@@ -1864,9 +1881,8 @@ return_bread:
 return_cheese:
     add $v0, $v0, -2
     jr $ra
+return_onion:
+    add $v0, $v0, -1
+    jr $ra
 return_normal:
     jr $ra
-wait_to_die:
-    la $t0 stage
-    sw $t3 0($t0)
-    j interrupt_dispatch
