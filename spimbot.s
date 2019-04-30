@@ -50,15 +50,15 @@ MAX_ITERATION           = 6
 MAX_TIME                = 9250000
 
 puzzle:      .word 0:452
-appliance0:  .byte 1
-appliance1:  .byte 1
+appliance0:  .byte 0
+appliance1:  .byte 0
 layout:      .byte 0:225
-shared:      .word 0:2
-order:       .word 6
-score:       .word 2
-request:     .word 2
-stage:       .word 1
-bins:        .byte 3
+shared:      .word 0:2  
+order:       .word 0:6
+score:       .word 0:2
+request:     .word 0:2
+stage:       .word 0
+bins:        .byte 0:3
 .text
 j main
 
@@ -112,9 +112,8 @@ main:
     sw $t0 0($t1)
     sw $t1 SET_REQUEST
    ########initial stage########## 
-    li $t3 0
     la $t1 stage
-    sw $t3 0($t1)
+    sw $0 0($t1)
 
 
     lw      $t0, BOT_X
@@ -768,6 +767,13 @@ right_submit:
     sw $a2 ANGLE
     j real_submit
 left_submit:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
     li $a2 0
     sw $a2 ANGLE
 real_submit:
@@ -776,13 +782,28 @@ real_submit:
     #set angle
     
     lw $s1 4($s0)
+    # sw $s1 0xffff0080
     ###$a2 the angel to pickup
     #s1 is the 20 offset int#
     ####bread######
     la $t3 stage
     lw $t3 0($t3)
-    # beqz 
+    # sw $t3 0xffff0080
+    beq $t3 0 Bread
+    beq $t3 1 Cheese
+    beq $t3 2 Raw_meat
+    beq $t3 3 Meat
+    beq $t3 4 Burnt_meat
+    beq $t3 5 Unwashed_tomatoes
+    beq $t3 6 Washed_tomatoes
+    lw $s1 0($s0)
+    beq $t3 7 Uncut_onions
+    beq $t3 8 Oninons
+    beq $t3 9 Unwahsed_Unchopped_Lettuce
+    beq $t3 10 Unchopped_Lettuce
+    beq $t3 11 Lettuce
 Bread:
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -797,9 +818,12 @@ Bread:
     li $a1 0
     jal pick_up_loads
     bgtz $a3 magic_bread
+     
 magic_done:
+    add $t3 $t3 1
 Cheese:
     ####cheese######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -808,12 +832,14 @@ Cheese:
     sll $a0 $s1 9
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
+    add $t3 $t3 1
 Raw_meat:
     ####raw meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -822,12 +848,14 @@ Raw_meat:
     sll $a0 $s1 14
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
+    add $t3 $t3 1
 Meat:
     ####meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -836,12 +864,14 @@ Meat:
     sll $a0 $s1 19
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
+    add $t3 $t3 1
 Burnt_meat:
     ####burnt meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -850,10 +880,11 @@ Burnt_meat:
     sll $a0 $s1 24
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
+    add $t3 $t3 1
 Unwashed_tomatoes:
     ####unwashed tomatoes######
     # la $a3 shared
@@ -870,6 +901,8 @@ Unwashed_tomatoes:
 
     sll $a0 $a0 2
     lw $s1 0($s0)
+    # sw $s1 0xffff0080
+
     srl $t0 $s1 29
     add $a0 $a0 $t0
     # la $a3 shared
@@ -883,8 +916,10 @@ Unwashed_tomatoes:
     # sw $a0 PRINT_INT_ADDR
     li $a1 196608
     jal pick_up_loads
+    add $t3 $t3 1
 Washed_tomatoes:
     ####washed tomatoes######
+    
     sll $a0 $s1 2
     srl $a0 $a0 27
     la $a3 shared
@@ -892,11 +927,13 @@ Washed_tomatoes:
     lw $a3 0($a3)
     sll $a3 $a3 2
     srl $a3 $a3 27
-    blt $a3 $a0 interrupt_dispatch
+    blt $a3 $a0 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
+    add $t3 $t3 1
 Uncut_onions:
+    
     ####uncut onions######
     sll $a0 $s1 7
     srl $a0 $a0 27
@@ -906,11 +943,13 @@ Uncut_onions:
     sll $a3 $a3 7
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
+    add $t3 $t3 1
 Oninons:
+    
     ####onions######
     sll $a0 $s1 12
     srl $a0 $a0 27
@@ -920,12 +959,14 @@ Oninons:
     sll $a3 $a3 12
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
+    add $t3 $t3 1
 Unwahsed_Unchopped_Lettuce:
     ####Unwashed Unchopped Lettuce######
+    
     sll $a0 $s1 17
     srl $a0 $a0 27
     la $a3 shared
@@ -934,12 +975,14 @@ Unwahsed_Unchopped_Lettuce:
     sll $a3 $a3 17
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
+    add $t3 $t3 1
 Unchopped_Lettuce:
     ####Unchopped Lettuce######
+    
     sll $a0 $s1 22
     srl $a0 $a0 27
     la $a3 shared
@@ -948,21 +991,35 @@ Unchopped_Lettuce:
     sll $a3 $a3 22
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
+    add $t3 $t3 1
 Lettuce:
     ####Lettuce######
     sll $a0 $s1 27
     srl $a0 $a0 27
+    # sw $a0 0xffff0080
+    nop
+    nop
+    # add $t0 $t0 $0
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 0($a3)
+    
     sll $a3 $a3 27
     srl $a3 $a3 27
+    # add $t0 $t0 $0
+    nop
+    nop
+    # sw $a3 0xffff0080
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    # add $t0 $t0 $0
+    # sw $a3 0xffff0080
+    nop
+    nop
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
@@ -971,9 +1028,9 @@ Lettuce:
 
 
 pick_up_loads:
-        li $t1 0    #$t3 i
+        li $t1 0    #$t2    i
         li $t2 0
-        li $t3 0
+        li $t4 0
     pick_up_loops:
         bge $t1 $a0 end_pick_up 
         bge $t2 4 drop_loads
@@ -983,7 +1040,7 @@ pick_up_loads:
         add $t2 $t2 1
         j pick_up_loops
         end_pick_up:
-        li $t3 1
+        li $t4 1
         j drop_loads
     drop_loads:
         li $t0 90
@@ -1002,7 +1059,7 @@ pick_up_loads:
         sw $a2 ANGLE
         li $t0 1
         sw $t0 ANGLE_CONTROL
-        beq $t3 0 back_to_load 
+        beqz $t4 back_to_load 
         jr $ra
     back_to_load:
         j once
@@ -1014,6 +1071,8 @@ submit_order:
     li $t0 1
     sw $t0 ANGLE_CONTROL
     sw $t0 SUBMIT_ORDER  
+    la $t3 stage
+    sw $0 0($t3)
     # la $t0 score
     # sw $t0 0xffff1018($0)
     # lw $t0 0($t0)
@@ -1022,7 +1081,7 @@ submit_order:
     
 magic_bread:
     lw $t0 GET_MONEY
-    blt $t0 20 interrupt_dispatch
+    blt $t0 40 interrupt_dispatch
     li $t0 0
     li $t1 0
     magic_loop:
@@ -1030,3 +1089,8 @@ magic_bread:
         sw $t1 GET_INGREDIENT_INSTANT
         add $t0 $t0 1
         j magic_loop 
+
+wait_to_die:
+    la $t0 stage
+    sw $t3 0($t0)
+    j interrupt_dispatch
