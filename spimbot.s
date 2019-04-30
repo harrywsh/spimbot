@@ -1478,7 +1478,7 @@ not_generate_tomato:
 generate_lettuce:
     li $t1, 5
     sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
     
 app_chop:
@@ -1493,7 +1493,7 @@ generate_onion:
     sll $t1, $t1, 16              # pick unchopped lettuce
     add $t1, $t1, 1
     sw $t1, PICKUP
-    sw $t1, PICKUP
+    # sw $t1, PICKUP
     la $t0 shared
     sw $t0 GET_SHARED
     lw $t0 0($t0)
