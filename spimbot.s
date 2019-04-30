@@ -47,7 +47,7 @@ GET_INGREDIENT_INSTANT 	= 0xffff0074
 FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 MAX_ITERATION           = 6
-MAX_TIME                = 8801505
+MAX_TIME                = 9250000
 
 puzzle:      .word 0:452
 appliance0:  .byte 1
@@ -55,7 +55,8 @@ appliance1:  .byte 1
 layout:      .byte 0:225
 shared:      .word 0:2
 order:       .word 6
-
+score:       .word 2
+request:     .word 2
 .text
 j main
 
@@ -90,114 +91,41 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    la $t1 request
+    li $t0 1764173471
+    sw $t0 4($t1)
+    li $t0 35636716367
+    sw $t0 0($t1)
+    sw $t1 SET_REQUEST
+    
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
-    jal move_south
-    jal move_south
-    jal move_west
-    jal move_south
-    la  $t0, puzzle
-    sw  $t0, REQUEST_PUZZLE
-    ##move west to start
     li      $t0, 10
     sw      $t0, VELOCITY
-    sw      $0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    ##end move
-    j       start
-run_left:
-    jal move_south
-    jal move_south
-    jal move_east
-    jal move_south
-    la  $t0, puzzle
-    sw  $t0, REQUEST_PUZZLE
-    ##move west to start
-    li      $t0, 10
-    sw      $t0, VELOCITY
-    li      $t0, 180
+    li      $t0, 101
     sw      $t0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
-    ##end move
+    j       start
+run_left:
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 79
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
 start:
     jal get_appliance
     li      $t7, MAX_ITERATION ### reserve t7!!!
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
+    li      $s6, 0 ### reserve s6!!!
+    li      $s5, 0 ### RESERVE S5!!!
+    la		$t0, puzzle
+    sw      $t0, REQUEST_PUZZLE
 infinite:
     j infinite
-
-#####movement
-move_east:
-    lw      $t1, BOT_X
-    #li     $t0, 0
-    sw      $0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_east_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_X
-    sub     $t2, $t2, $t1
-    blt     $t2, 20, move_east_loop
-move_end:
-    sw      $0, VELOCITY
-    jr      $ra
-
-move_west:
-    lw      $t1, BOT_X
-    li      $t0, 180
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_west_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_X
-    sub     $t2, $t1, $t2
-    blt     $t2, 20, move_west_loop
-    j		move_end
-
-move_north:
-    lw      $t1, BOT_Y
-    li      $t0, 270
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_north_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_Y
-    sub     $t2, $t1, $t2
-    blt     $t2, 20, move_north_loop
-    j		move_end
-
-move_south:
-    lw      $t1, BOT_Y
-    li      $t0, 90
-    sw      $t0, ANGLE
-    li      $t0, 1
-    sw      $t0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_south_loop:
-    # lw      $t2, VELOCITY
-    # beqz    $t2, move_end
-    lw      $t2, BOT_Y
-    sub     $t2, $t2, $t1
-    blt     $t2, 20, move_south_loop
-    j		move_end
-######
-
 
 .kdata
 chunkIH:    .space 48
@@ -243,9 +171,9 @@ interrupt_dispatch:            # Interrupt:
 	and 	$a0, $k0, REQUEST_PUZZLE_INT_MASK
 	bne 	$a0, 0, request_puzzle_interrupt
 
-    li        $v0, PRINT_STRING    # Unhandled interrupt types
-    la        $a0, unhandled_str
-    syscall
+    # li        $v0, PRINT_STRING    # Unhandled interrupt types
+    # la        $a0, unhandled_str
+    # syscall
     j    done
 
 bonk_interrupt:
@@ -259,11 +187,12 @@ bonk_right:
     lw      $a0, BOT_X      # X coordinate @a0
     beq     $a0, 160, right_counter
     beq     $t7, -1, right_start_work
+    bge     $a0, 280, right_first_bonk
 right_bins:
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
     ##move west to start
     li      $t0, 180
     sw      $t0, ANGLE
@@ -271,6 +200,30 @@ right_bins:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
+right_first_bonk:
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    li      $t0, 180
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 500
+right_first_bonk_loop:
+    add		$t0, $t0, -1
+    bnez    $t0, right_first_bonk_loop   
+    li      $t0, 175
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL  
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_counter:
     sw      $0, DROPOFF
@@ -288,6 +241,7 @@ right_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch
 right_continue_work:
     bltz    $t7, right_return_work
@@ -316,9 +270,13 @@ right_return_work:
     move     $a0, $s7
     jal     fetch_item
     bnez    $s7, right_return_work_long
+    li      $t0, 0x00020009
+    sw      $t0, SET_TILE
     li      $t0, 342
     j		right_return_work_endif
 right_return_work_long:
+    li      $t0, 0x0002000c
+    sw      $t0, SET_TILE
     li      $t0, 354
 right_return_work_endif:
     sw      $t0, ANGLE
@@ -327,6 +285,7 @@ right_return_work_endif:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_appliance:
     #### get INGREDIENT first
@@ -339,6 +298,8 @@ right_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    li      $t0, 0x00020009
+    sw      $t0, SET_TILE
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_start_work:
     li      $t0, 270
@@ -347,25 +308,49 @@ right_start_work:
     sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    li      $t0, 50000
-    sw      $t0, TIMER
+    lw      $s5, GET_TILE_INFO
+    sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 #### left    
 bonk_left:
     lw      $a0, BOT_X      # X coordinate @a0
     beq     $a0, 139, left_counter
     beq     $t7, -1, left_start_work
+    blt     $a0, 20, left_first_bonk
 left_bins:
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
-    sw      $t0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
     ##move east to start
     sw      $0, ANGLE
     li      $t0, 1
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    j       interrupt_dispatch    # see if other interrupts are waiting
+left_first_bonk:
+    li      $t0, 90
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, PICKUP
+    sw      $0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL
+    li      $t0, 10
+    sw      $t0, VELOCITY
+    li      $t0, 500
+left_first_bonk_loop:
+    add		$t0, $t0, -1
+    bnez    $t0, left_first_bonk_loop   
+    li      $t0, 5
+    sw      $t0, ANGLE
+    li      $t0, 1
+    sw      $t0, ANGLE_CONTROL  
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_counter:
     sw      $0, DROPOFF
@@ -376,7 +361,6 @@ left_counter:
     li      $t0, 3
     sw      $t0, DROPOFF
     lw      $t0, TIMER
-    # sw      $t0, 0xffff0080($0)
     blt     $t0, MAX_TIME, left_continue_work
     li      $t0, 90
     sw      $t0, ANGLE
@@ -384,6 +368,7 @@ left_counter:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch
 left_continue_work:
     bltz    $t7, left_return_work
@@ -413,9 +398,13 @@ left_return_work:
     move    $a0, $s7
     jal     fetch_item
     bnez    $s7, left_return_work_long
+    li      $t0, 0x00020005
+    sw      $t0, SET_TILE
     li      $t0, 198
     j		left_return_work_endif
 left_return_work_long:
+    li      $t0, 0x00020002
+    sw      $t0, SET_TILE
     li      $t0, 186
 left_return_work_endif:
     sw      $t0, ANGLE
@@ -424,6 +413,7 @@ left_return_work_endif:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    # sw      $0, GET_BOOST
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_appliance:
     #### get INGREDIENT first
@@ -436,6 +426,8 @@ left_return_appliance:
     li      $t0, 10
     sw      $t0, VELOCITY
     li      $t7, -1
+    li      $t0, 0x00020005
+    sw      $t0, SET_TILE
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_start_work:
     li      $t0, 270
@@ -444,12 +436,13 @@ left_start_work:
     sw      $t0, ANGLE_CONTROL
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    sw      $t0, FINISH_APPLIANCE_INSTANT
-    li      $t0, 1000
-    sw      $t0, TIMER
+#    sw      $t0, FINISH_APPLIANCE_INSTANT
+    lw      $s5, GET_TILE_INFO
+    sw      $0, TIMER
     j       interrupt_dispatch    # see if other interrupts are waiting
 bonk_submit:
-    jal submit
+    li      $s6, 1
+    jal     submit
     j interrupt_dispatch
 
 request_puzzle_interrupt:
@@ -477,8 +470,9 @@ i_inner_loop:
         lb      $t0, 8($t8)
         bne     $t0, $t9, else1
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill
-        move    $a1, $v0
+        add     $t2, $t8, 0
+        jal     floodfill_real
+        add    $a1, $a1, 1
         add     $a3, $a3, 1
         beq     $a3, $t5, i_inner_end_long
         j       else2
@@ -489,8 +483,9 @@ else1:
         lb      $t0, 9($t8)
         bne     $t0, $t9, else2
         # marker = floodfill(puzzle,marker,i,j);
-        jal     floodfill
-        move    $a1, $v0
+        add     $t2, $t8, 1
+        jal     floodfill_real
+        add    $a1, $a1, 1
 else2:
         add     $t8, $t8, 2
         add     $a3, $a3, 1
@@ -505,20 +500,26 @@ i_inner_end:
 i_outer_end:
     ########
     sw  $a0, SUBMIT_SOLUTION
+    bnez     $s6, submit
 	j	interrupt_dispatch
 
 timer_interrupt:
 	sw 		$0, TIMER_ACK
 	#Fill in your code here
+    lw      $t0, GET_TILE_INFO
+    sub     $t0, $t0, $s5
+    bnez    $t0, timer_pickup
+    sw      $0, FINISH_APPLIANCE_INSTANT
+timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
     beq     $t7, -5, timer_return
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
-    sw      $t0, FINISH_APPLIANCE_INSTANT
-    li      $t0, 1000
-    sw      $t0, TIMER
+#    sw      $t0, FINISH_APPLIANCE_INSTANT
+    lw      $s5, GET_TILE_INFO
+    sw      $0, TIMER
     j	    interrupt_dispatch
 
 timer_return:
@@ -580,95 +581,68 @@ done:
     eret
 
 floodfill:
-    mul     $t2, $a2, $t5
-    add     $t2, $t2, $a3
-    add     $t2, $t2, $a0
     lb      $t3, 8($t2)
     bne $t3, $t9, return_short
-    bltz $a2, return_short
     bltz $a3, return_short
-    beq $a2, $t4, return_short
     beq $a3, $t5, return_short
-
+floodfill_real:
     sb $a1, 8($t2)                  # board[row][col] = marker;
 
-    sub $sp, $sp, 12
+    sub $sp, $sp, 16
     sw $ra, 0($sp)
     sw $a2, 4($sp)
     sw $a3, 8($sp)
+    sw $t2, 12($sp)
+
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, 2
+    addi $t2, $t2, 2
+    jal floodfill
 
     addi $a2, $a2, 1
+    beq $a2, $t4, floodfill_cont1
+    add $t2, $t2, $t5
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+
+    sub $t2, $t2, $t5
+    addi $a2, $a2, -2
+    sub $t2, $t2, $t5
+    bltz $a2, floodfill_cont2
+    jal floodfill
     addi $a3, $a3, 1
+    addi $t2, $t2, 1
     jal floodfill
-    addi $a3, $a3, -1
+    addi $a3, $a3, 1 
+    addi $t2, $t2, 1  
     jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-
-    addi $a2, $a2, -1
-    addi $a3, $a3, 2
-    jal floodfill
-    addi $a3, $a3, -2
-    jal floodfill
-
-    addi $a2, $a2, -1
-    addi $a3, $a3, 2
-    jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-    addi $a3, $a3, -1
-    jal floodfill
-
-return_marker_1:
-    addi $v0, $a1, 1
+floodfill_cont2:
+    lw $t2, 12($sp)
     lw $a3, 8($sp)
     lw $a2, 4($sp)
     lw $ra, 0($sp)
-    addi $sp, $sp, 12
-	jr	$ra                         # return marker + 1;
-return_marker:
-    move $v0, $a1
-    lw $a3, 8($sp)
-    lw $a2, 4($sp)
-    lw $ra, 0($sp)
-    addi $sp, $sp, 12
-	jr	$ra                         # return marker;
+    addi $sp, $sp, 16
 return_short:
-    move $v0, $a1
     jr	$ra
-
-#######
-move_back_10:
-    lw      $t1, BOT_Y
-    lw      $t2, BOT_X
-    li      $t0, 180
-    sw      $t0, ANGLE
-    sw      $0, ANGLE_CONTROL
-    li      $t0, 10
-    sw      $t0, VELOCITY
-move_back_loop:
-    lw      $t0, ANGLE
-    beq     $t0, 90, move_set_y
-    beq     $t0, 270, move_set_y
-    lw      $t3, BOT_X
-    move    $t0, $t2
-    j       move_judge
-move_set_y:
-    lw      $t3, BOT_Y
-    move    $t0, $t1
-move_judge:
-    blt     $t3, $t0, move_not_swap
-    move    $t4, $t3
-    move    $t3, $t0
-    move    $t0, $t4
-move_not_swap:
-    sub     $t4, $t0, $t3
-    bge     $t4, 10, move_back_endloop
-    j		move_back_loop    
-move_back_endloop:
-    sw      $0, VELOCITY
-    jr      $ra
-#######
+floodfill_cont1:
+    addi $a2, $a2, -2
+    sub $t2, $t2, $t5
+    bltz $a2, floodfill_cont2
+    jal floodfill
+    addi $a3, $a3, -1
+    addi $t2, $t2, -1
+    jal floodfill
+    addi $a3, $a3, -1 
+    addi $t2, $t2, -1  
+    jal floodfill
+    j   floodfill_cont2
 
 ####################################################################################
 # grab ingredients needed to the appointed appliance                               #
@@ -713,8 +687,8 @@ app_oven:
     sw $t1, PICKUP
 generate_meat:
     li $t1, 2
-    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     # sw $t1, GET_INGREDIENT_INSTANT
     # sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
@@ -729,19 +703,18 @@ app_sink:
 generate_tomato:
     li $t1, 3
     sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
 not_generate_tomato:
     beqz $t5, generate_lettuce
     li $t1, 5
     sll $t1, $t1, 16              # pick unwashed unchopped lettuce
     sw $t1, PICKUP
     sw $t1, PICKUP
-    # sw $t1, PICKUP
     j return_fetch
 generate_lettuce:
     li $t1, 5
     sw $t1, GET_INGREDIENT_INSTANT
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     j return_fetch
     
 app_chop:
@@ -753,7 +726,7 @@ app_chop:
     j not_generate_onion
 generate_onion:
     li $t1, 4
-    # sw $t1, GET_INGREDIENT_INSTANT
+    sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
 not_generate_onion:
     li $t1, 5
@@ -765,9 +738,6 @@ return_fetch:
     jr $ra
 
 submit:
-    sub $sp $sp 8
-    sw $s0 0($sp)
-    sw $s1 4($sp)
     la $s0 order
     sw $s0 GET_TURNIN_ORDER
     lw $t0 BOT_X
@@ -795,83 +765,170 @@ real_submit:
     lw $a3 4($a3)
     sll $a3 $a3 4
     srl $a3 $a3 27
-    sw $a3 0xffff0080($0)   
+    # sw $a3 0xffff0080($0)   
     sll $a0 $s1 4
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    sw $a3 0xffff0080($0)
+    # sw $a3 0xffff0080($0)
     # sw $a0 PRINT_INT_ADDR
     li $a1 0
     jal pick_up_loads
     bgtz $a3 magic_bread
 magic_done:
     ####cheese######
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 4($a3)
+    sll $a3 $a3 9
+    srl $a3 $a3 27
     sll $a0 $s1 9
     srl $a0 $a0 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
     ####raw meat######
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 4($a3)
+    sll $a3 $a3 14
+    srl $a3 $a3 27
     sll $a0 $s1 14
     srl $a0 $a0 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
     ####meat######
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 4($a3)
+    sll $a3 $a3 19
+    srl $a3 $a3 27
     sll $a0 $s1 19
     srl $a0 $a0 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
     ####burnt meat######
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 4($a3)
+    sll $a3 $a3 24
+    srl $a3 $a3 27
     sll $a0 $s1 24
     srl $a0 $a0 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
     ####unwashed tomatoes######
+    # la $a3 shared
+    # sw $a3 GET_SHARED
+    # lw $a3 4($a3)
+    # sll $a3 $a3 29
+    # srl $a3 $a3 27
+    
     sll $a0 $s1 29
     srl $a0 $a0 27
+    
+    # sub $a3 $a0 $a3
+    # bgtz $a3 interrupt_dispatch
+
     sll $a0 $a0 2
     lw $s1 0($s0)
     srl $t0 $s1 29
     add $a0 $a0 $t0
+    # la $a3 shared
+    # sw $a3 GET_SHARED
+    # lw $a3 0($a3)
+    # # sll $a3 $a3 29
+    # srl $a3 $a3 29
+    # sub $a3 $a0 $a3
+    # bgtz $a3 interrupt_dispatch
+
     # sw $a0 PRINT_INT_ADDR
     li $a1 196608
     jal pick_up_loads
     ####washed tomatoes######
     sll $a0 $s1 2
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 2
+    srl $a3 $a3 27
+    blt $a3 $a0 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
     ####uncut onions######
     sll $a0 $s1 7
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 7
+    srl $a3 $a3 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
     ####onions######
     sll $a0 $s1 12
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 12
+    srl $a3 $a3 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
     ####Unwashed Unchopped Lettuce######
     sll $a0 $s1 17
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 17
+    srl $a3 $a3 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
     ####Unchopped Lettuce######
     sll $a0 $s1 22
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 22
+    srl $a3 $a3 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
     ####Lettuce######
     sll $a0 $s1 27
     srl $a0 $a0 27
+    la $a3 shared
+    sw $a3 GET_SHARED
+    lw $a3 0($a3)
+    sll $a3 $a3 27
+    srl $a3 $a3 27
+    sub $a3 $a0 $a3
+    bgtz $a3 interrupt_dispatch
     # sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
@@ -922,14 +979,16 @@ submit_order:
     sw $t0 ANGLE
     li $t0 1
     sw $t0 ANGLE_CONTROL
-    sw $t0 SUBMIT_ORDER
-    lw $t0 GET_MONEY
-    blt $t0 20 wait_todie
+    sw $t0 SUBMIT_ORDER  
+    # la $t0 score
+    # sw $t0 0xffff1018($0)
+    # lw $t0 0($t0)
+    # sw $t0 0xffff0080($0)
     jr $ra
-wait_todie:
-    j wait_todie
-
+    
 magic_bread:
+    lw $t0 GET_MONEY
+    blt $t0 20 interrupt_dispatch
     li $t0 0
     li $t1 0
     magic_loop:
