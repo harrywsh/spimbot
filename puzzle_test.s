@@ -731,224 +731,44 @@ add     $t8, $t8, $a0              #base address - 8 for bitboard
 li      $a2, 0                     #a2 = i
 
 bne     $t5, 32, i_outer_loop
+        move    $t8, $a0    #warning: reserve $t8!!!
+        
 i_outer_loop_32:
-beq     $a2, $t4, i_outer_end
-mul     $t0, $a2, $t5
-add     $t6, $t0, $a0              #puzzle address - 8 for each row
+        beq     $a2, $t4, i_outer_end
 
-li      $a3, 0                     #a3 = j
-li      $s2, 8                                          #start of each block
-######block 0 starts
-puzzle_32_block0:
-######prepare jumptable
-lbu     $t0, 8($t8)
-sll     $t0, $t0, 2
-add     $s3, $s4, $t0              #s4 : jumpboard base address
-######
+        li      $a3, 0
+i_inner_loop_32:
+        beq     $a3, $t5, i_inner_end_32
+        lb      $t0, 8($t8)
+        bne     $t0, $t9, else1_32
+        # marker = floodfill(puzzle,marker,i,j);
+        add     $t2, $t8, 0
+        jal     floodfill_real
+        add    $a1, $a1, 1
+        add     $a3, $a3, 1
+        beq     $a3, $t5, i_inner_end_32_long_32
+        j       else2_32
+else1_32:
+        add     $a3, $a3, 1
+        # unrolling
+        beq     $a3, $t5, i_inner_end_32_long_32
+        lb      $t0, 9($t8)
+        bne     $t0, $t9, else2_32
+        # marker = floodfill(puzzle,marker,i,j);
+        add     $t2, $t8, 1
+        jal     floodfill_real
+        add    $a1, $a1, 1
+else2_32:
+        add     $t8, $t8, 2
+        add     $a3, $a3, 1
 
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump0_0
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######jump 0 0 starts
-puzzle_32_jump0_0:
-lb      $t1, 0($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block1
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump0_1
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 0 1 starts
-puzzle_32_jump0_1:
-lb      $t1, 1($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block1
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump0_2
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 0 2 starts
-puzzle_32_jump0_2:
-lb      $t1, 2($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block1
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_block1
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######
+        j       i_inner_loop_32
+i_inner_end_32_long_32:
+        add     $t8, $t8, 1
+i_inner_end_32:
 
-######block 1 starts
-puzzle_32_block1:
-add     $s2, $s2, 8
-######prepare jumptable
-lbu     $t0, 9($t8)
-sll     $t0, $t0, 2
-add     $s3, $s4, $t0              #s4 : jumpboard base address
-######
-
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump1_0
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######jump 1 0 starts
-puzzle_32_jump1_0:
-lb      $t1, 0($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block2
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump1_1
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 1 1 starts
-puzzle_32_jump1_1:
-lb      $t1, 1($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block2
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump1_2
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 1 2 starts
-puzzle_32_jump1_2:
-lb      $t1, 2($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block2
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_block2
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######
-
-######block 2 starts
-puzzle_32_block2:
-add     $s2, $s2, 8
-######prepare jumptable
-lbu     $t0, 10($t8)
-sll     $t0, $t0, 2
-add     $s3, $s4, $t0              #s4 : jumpboard base address
-######
-
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump2_0
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######jump 2 0 starts
-puzzle_32_jump2_0:
-lb      $t1, 0($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block3
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump2_1
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 2 1 starts
-puzzle_32_jump2_1:
-lb      $t1, 1($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block3
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump2_2
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 2 2 starts
-puzzle_32_jump2_2:
-lb      $t1, 2($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_block3
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_block3
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######
-
-######block 3 starts
-puzzle_32_block3:
-add     $s2, $s2, 8
-######prepare jumptable
-lbu     $t0, 11($t8)
-sll     $t0, $t0, 2
-add     $s3, $s4, $t0              #s4 : jumpboard base address
-######
-
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump3_0
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######jump 3 0 starts
-puzzle_32_jump3_0:
-lb      $t1, 0($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_line_end
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump3_1
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 3 1 starts
-puzzle_32_jump3_1:
-lb      $t1, 1($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_line_end
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_jump3_2
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######jump 3 2 starts
-puzzle_32_jump3_2:
-lb      $t1, 2($s3)
-add     $a3, $a3, $t1
-add     $t6, $t6, $t1
-beq     $a3, $s2, puzzle_32_line_end
-lb      $t0, 8($t6)
-bne     $t0, $t9, puzzle_32_line_end
-move    $t2, $t6
-jal     floodfill_real
-add     $a1, $a1, 1
-######
-######
-
-puzzle_32_line_end:
-add     $t8, $t8, 4
-add     $a2, $a2, 1
-j       i_outer_loop_32
+        add     $a2, $a2, 1
+        j       i_outer_loop_32
 
 i_outer_loop:
 beq     $a2, $t4, i_outer_end

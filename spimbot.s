@@ -48,39 +48,309 @@ FINISH_APPLIANCE_INSTANT = 0xffff0078
 
 MAX_ITERATION           = 6
 MAX_TIME                = 9250000
-
+bitboard_jump:
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 3 2 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 4 2 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 3 3 0
+.byte 2 3 3 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 4 2 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 3 2 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 5 2 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 4 3 0
+.byte 1 4 3 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 5 2 0
+.byte 1 3 4 0
+.byte 1 3 4 0
+.byte 1 3 4 0
+.byte 1 3 4 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 5 2 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 4 3 0
+.byte 1 4 3 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 5 2 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 1 7 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 3 2 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 4 2 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 3 3 0
+.byte 2 3 3 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 4 2 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 2 6 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 3 2 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 3 5 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 4 4 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 5 3 0 0
+.byte 5 3 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 6 2 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
+.byte 8 0 0 0
 puzzle:      .word 0:452
-appliance0:  .byte 1
-appliance1:  .byte 1
+appliance0:  .byte 0
+appliance1:  .byte 0
 layout:      .byte 0:225
-shared:      .word 0:2
-order:       .word 6
-score:       .word 2
-request:     .word 2
+shared:      .word 0:2  
+order:       .word 0:6
+score:       .word 0:2
+request:     .word 0:2
+stage:       .word 0
+bins:        .byte 0:3
 .text
 j main
 
 get_appliance:
     la $t0 layout
+    la $t3 bins
     sw $t0 GET_LAYOUT
     lw $t1 BOT_X
-    bgt $t1 150 search_right
+    bgt $t1 150 get_appliance_right
     lb $t1 32($t0)
     la $t2 appliance1
     sb $t1 0($t2)
     lb $t1 35($t0)
     la $t2 appliance0
     sb $t1 0($t2)
+    lb $t1 45($t0)
+    sb $t1 0($t3)
+    lb $t1 105($t0)
+    sb $t1 1($t3)
+    lb $t1 165($t0)
+    sb $t1 2($t3)
     jr $ra
-search_right:
+get_appliance_right:
     lb $t1 39($t0)
     la $t2 appliance0
     sb $t1 0($t2)
     lb $t1 42($t0)
     la $t2 appliance1
     sb $t1 0($t2)
+    lb $t1 59($t0)
+    sb $t1 0($t3)
+    lb $t1 119($t0)
+    sb $t1 1($t3)
+    lb $t1 179($t0)
+    sb $t1 2($t3)
     jr $ra
-
 main:
 	# Construct interrupt mask
 	li      $t4, 0
@@ -97,7 +367,11 @@ main:
     li $t0 35636716367
     sw $t0 0($t1)
     sw $t1 SET_REQUEST
-    
+   ########initial stage########## 
+    la $t1 stage
+    sw $0 0($t1)
+
+
     lw      $t0, BOT_X
     blt     $t0, 150, run_left
 # run_right:
@@ -117,11 +391,25 @@ run_left:
     sw      $t0, ANGLE_CONTROL
 start:
     jal get_appliance
-    li      $t7, MAX_ITERATION ### reserve t7!!!
+    la      $t0, bins
+    lb      $t0, 0($t0)
+    li $t7, MAX_ITERATION
+    beq $t0, 7, initial_bread
+    beq $t0, 11, initial_cheese
+    j initial_normal
+initial_bread:
+    add $t7, $t7, 2
+    j initial_normal
+initial_cheese:
+    add $t7, $t7, -2
+    j initial_normal
+initial_normal:
+    # li      $t7, MAX_ITERATION ### reserve t7!!!
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
     li      $s6, 0 ### reserve s6!!!
     li      $s5, 0 ### RESERVE S5!!!
+    la      $s4, bitboard_jump
     la		$t0, puzzle
     sw      $t0, REQUEST_PUZZLE
 infinite:
@@ -263,7 +551,8 @@ right_go_next_bin:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7,  MAX_ITERATION
+    jal     adjust_fetch
+    move    $t7, $v0
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_work:
     xor     $s7, $s7, 1
@@ -278,6 +567,8 @@ right_return_work_long:
     li      $t0, 0x0002000c
     sw      $t0, SET_TILE
     li      $t0, 354
+    sw      $0, GET_BOOST
+    sw      $0, GET_BOOST
 right_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -391,7 +682,8 @@ left_go_next_bin:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7,  MAX_ITERATION
+    jal     adjust_fetch
+    move    $t7, $v0
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_work:
     xor     $s7, $s7, 1
@@ -406,6 +698,8 @@ left_return_work_long:
     li      $t0, 0x00020002
     sw      $t0, SET_TILE
     li      $t0, 186
+    sw      $0, GET_BOOST
+    sw      $0, GET_BOOST
 left_return_work_endif:
     sw      $t0, ANGLE
     li      $t0, 1
@@ -452,53 +746,519 @@ request_puzzle_interrupt:
     # bge $t0, 100, interrupt_dispatch
     la  $a0, puzzle
     sw  $a0, REQUEST_PUZZLE
-    #######
-        li      $a1, 'A'
-        li      $a2, 0
+#############################resolving process starts############################
+li      $a1, 'A'                   #marker
+lw      $t4, 0($a0)                #row
+lw      $t5, 4($a0)                #col
 
-        lw      $t4, 0($a0)
-        lw      $t5, 4($a0)
+mul     $t8, $t4, $t5              #size
+add     $t8, $t8, $a0              #base address - 8 for bitboard
 
-        move    $t8, $a0    #warning: reserve $t8!!!
-        
+li      $a2, 0                     #a2 = i
+
+bne     $t5, 32, i_outer_loop
+i_outer_loop_32:
+beq     $a2, $t4, i_outer_end
+mul     $t0, $a2, $t5
+add     $t6, $t0, $a0              #puzzle address - 8 for each row
+
+li      $a3, 0                     #a3 = j
+li      $s2, 8                                          #start of each block
+######block 0 starts
+puzzle_32_block0:
+######prepare jumptable
+lbu     $t0, 8($t8)
+# sw      $t0 0xffff0080
+bne     $t0 247 cont
+nop
+cont:
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump0_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 0 0 starts
+puzzle_32_jump0_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump0_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 0 1 starts
+puzzle_32_jump0_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump0_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 0 2 starts
+puzzle_32_jump0_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_block1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 1 starts
+puzzle_32_block1:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 9($t8)
+# sw      $t0 0xffff0080
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump1_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 1 0 starts
+puzzle_32_jump1_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump1_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 1 1 starts
+puzzle_32_jump1_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump1_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 1 2 starts
+puzzle_32_jump1_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_block2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 2 starts
+puzzle_32_block2:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 10($t8)
+# sw      $t0 0xffff0080
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump2_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 2 0 starts
+puzzle_32_jump2_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump2_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 2 1 starts
+puzzle_32_jump2_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump2_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 2 2 starts
+puzzle_32_jump2_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_block3
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 3 starts
+puzzle_32_block3:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 11($t8)
+# sw      $t0 0xffff0080
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump3_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 3 0 starts
+puzzle_32_jump3_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+bne     $t1 6 con
+nop
+con:
+beq     $a3, $s2, puzzle_32_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump3_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 3 1 starts
+puzzle_32_jump3_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_jump3_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 3 2 starts
+puzzle_32_jump3_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_32_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_32_line_end
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+puzzle_32_line_end:
+add     $t8, $t8, 5
+add     $a2, $a2, 1
+j       i_outer_loop_32
+
 i_outer_loop:
-        beq     $a2, $t4, i_outer_end
+beq     $a2, $t4, i_outer_end
+mul     $t0, $a2, $t5
+add     $t6, $t0, $a0              #puzzle address - 8 for each row
 
-        li      $a3, 0
-i_inner_loop:
-        beq     $a3, $t5, i_inner_end
-        lb      $t0, 8($t8)
-        bne     $t0, $t9, else1
-        # marker = floodfill(puzzle,marker,i,j);
-        add     $t2, $t8, 0
-        jal     floodfill_real
-        add    $a1, $a1, 1
-        add     $a3, $a3, 1
-        beq     $a3, $t5, i_inner_end_long
-        j       else2
-else1:
-        add     $a3, $a3, 1
-        # unrolling
-        beq     $a3, $t5, i_inner_end_long
-        lb      $t0, 9($t8)
-        bne     $t0, $t9, else2
-        # marker = floodfill(puzzle,marker,i,j);
-        add     $t2, $t8, 1
-        jal     floodfill_real
-        add    $a1, $a1, 1
-else2:
-        add     $t8, $t8, 2
-        add     $a3, $a3, 1
+li      $a3, 0                     #a3 = j
+li      $s2, 8                                          #start of each block
+######block 0 starts
+puzzle_block0:
+######prepare jumptable
+lbu     $t0, 8($t8)
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
 
-        j       i_inner_loop
-i_inner_end_long:
-        add     $t8, $t8, 1
-i_inner_end:
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump0_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 0 0 starts
+puzzle_jump0_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump0_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 0 1 starts
+puzzle_jump0_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump0_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 0 2 starts
+puzzle_jump0_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block1
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_block1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
 
-        add     $a2, $a2, 1
-        j       i_outer_loop
+######block 1 starts
+puzzle_block1:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 9($t8)
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump1_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 1 0 starts
+puzzle_jump1_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump1_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 1 1 starts
+puzzle_jump1_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump1_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 1 2 starts
+puzzle_jump1_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block2
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_block2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 2 starts
+puzzle_block2:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 10($t8)
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump2_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 2 0 starts
+puzzle_jump2_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump2_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 2 1 starts
+puzzle_jump2_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump2_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 2 2 starts
+puzzle_jump2_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block3
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_block3
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 3 starts
+puzzle_block3:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 11($t8)
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump3_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 3 0 starts
+puzzle_jump3_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block4
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump3_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 3 1 starts
+puzzle_jump3_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block4
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump3_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 3 2 starts
+puzzle_jump3_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_block4
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_block4
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+######block 4 starts
+puzzle_block4:
+add     $s2, $s2, 8
+######prepare jumptable
+lbu     $t0, 12($t8)
+sll     $t0, $t0, 2
+add     $s3, $s4, $t0              #s4 : jumpboard base address
+######
+
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump4_0
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######jump 4 0 starts
+puzzle_jump4_0:
+lb      $t1, 0($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump4_1
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 4 1 starts
+puzzle_jump4_1:
+lb      $t1, 1($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_jump4_2
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######jump 4 2 starts
+puzzle_jump4_2:
+lb      $t1, 2($s3)
+add     $a3, $a3, $t1
+add     $t6, $t6, $t1
+beq     $a3, $s2, puzzle_line_end
+lb      $t0, 8($t6)
+bne     $t0, $t9, puzzle_line_end
+move    $t2, $t6
+jal     floodfill_real
+add     $a1, $a1, 1
+######
+######
+
+puzzle_line_end:
+add     $t8, $t8, 5
+add     $a2, $a2, 1
+j       i_outer_loop
+
 i_outer_end:
-    ########
+#############################resolving process ends############################
     sw  $a0, SUBMIT_SOLUTION
     bnez     $s6, submit
 	j	interrupt_dispatch
@@ -514,7 +1274,7 @@ timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
-    beq     $t7, -5, timer_return
+    beq     $t7, -4, timer_return
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
 #    sw      $t0, FINISH_APPLIANCE_INSTANT
@@ -523,11 +1283,15 @@ timer_pickup:
     j	    interrupt_dispatch
 
 timer_return:
+    sw      $0, DROPOFF
+    sw      $0, FINISH_APPLIANCE_INSTANT
+    sw      $0, PICKUP
     lw      $t0, BOT_X
     blt     $t0, 150, timer_left
     bnez    $s7, timer_right_long
     ##short return
     li      $t0, 162
+    # sw      $0, GET_BOOST
     j       timer_right_return
 timer_right_long:
     ##long return
@@ -722,11 +1486,11 @@ app_chop:
     li $t1, 4
     sll $t1, $t1, 16              # pick unchopped onion
     sw $t1, PICKUP
-    sw $t1, PICKUP
+    # sw $t1, PICKUP
     j not_generate_onion
 generate_onion:
     li $t1, 4
-    sw $t1, GET_INGREDIENT_INSTANT
+    # sw $t1, GET_INGREDIENT_INSTANT
     sw $t1, GET_INGREDIENT_INSTANT
 not_generate_onion:
     li $t1, 5
@@ -734,10 +1498,12 @@ not_generate_onion:
     add $t1, $t1, 1
     sw $t1, PICKUP
     sw $t1, PICKUP
+    sw $t1, PICKUP
 return_fetch:
     jr $ra
 
 submit:
+    
     la $s0 order
     sw $s0 GET_TURNIN_ORDER
     lw $t0 BOT_X
@@ -748,6 +1514,13 @@ right_submit:
     sw $a2 ANGLE
     j real_submit
 left_submit:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
     li $a2 0
     sw $a2 ANGLE
 real_submit:
@@ -756,10 +1529,28 @@ real_submit:
     #set angle
     
     lw $s1 4($s0)
+    # sw $s1 0xffff0080
     ###$a2 the angel to pickup
     #s1 is the 20 offset int#
     ####bread######
-
+    la $t3 stage
+    lw $t3 0($t3)
+    # sw $t3 0xffff0080
+    beq $t3 0 Bread
+    beq $t3 1 Cheese
+    beq $t3 2 Raw_meat
+    beq $t3 3 Meat
+    beq $t3 4 Burnt_meat
+    beq $t3 5 Unwashed_tomatoes
+    beq $t3 6 Washed_tomatoes
+    lw $s1 0($s0)
+    beq $t3 7 Uncut_onions
+    beq $t3 8 Oninons
+    beq $t3 9 Unwahsed_Unchopped_Lettuce
+    beq $t3 10 Unchopped_Lettuce
+    beq $t3 11 Lettuce
+Bread:
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -774,8 +1565,12 @@ real_submit:
     li $a1 0
     jal pick_up_loads
     bgtz $a3 magic_bread
+     
 magic_done:
+    add $t3 $t3 1
+Cheese:
     ####cheese######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -784,11 +1579,14 @@ magic_done:
     sll $a0 $s1 9
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 65536
     jal pick_up_loads
+    add $t3 $t3 1
+Raw_meat:
     ####raw meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -797,11 +1595,14 @@ magic_done:
     sll $a0 $s1 14
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131072
     jal pick_up_loads
+    add $t3 $t3 1
+Meat:
     ####meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -810,11 +1611,14 @@ magic_done:
     sll $a0 $s1 19
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131073
     jal pick_up_loads
+    add $t3 $t3 1
+Burnt_meat:
     ####burnt meat######
+    
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 4($a3)
@@ -823,10 +1627,12 @@ magic_done:
     sll $a0 $s1 24
     srl $a0 $a0 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 131074
     jal pick_up_loads
+    add $t3 $t3 1
+Unwashed_tomatoes:
     ####unwashed tomatoes######
     # la $a3 shared
     # sw $a3 GET_SHARED
@@ -842,6 +1648,8 @@ magic_done:
 
     sll $a0 $a0 2
     lw $s1 0($s0)
+    # sw $s1 0xffff0080
+
     srl $t0 $s1 29
     add $a0 $a0 $t0
     # la $a3 shared
@@ -855,7 +1663,10 @@ magic_done:
     # sw $a0 PRINT_INT_ADDR
     li $a1 196608
     jal pick_up_loads
+    add $t3 $t3 1
+Washed_tomatoes:
     ####washed tomatoes######
+    
     sll $a0 $s1 2
     srl $a0 $a0 27
     la $a3 shared
@@ -863,10 +1674,13 @@ magic_done:
     lw $a3 0($a3)
     sll $a3 $a3 2
     srl $a3 $a3 27
-    blt $a3 $a0 interrupt_dispatch
+    blt $a3 $a0 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 196609
     jal pick_up_loads
+    add $t3 $t3 1
+Uncut_onions:
+    
     ####uncut onions######
     sll $a0 $s1 7
     srl $a0 $a0 27
@@ -876,10 +1690,13 @@ magic_done:
     sll $a3 $a3 7
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 262144
     jal pick_up_loads
+    add $t3 $t3 1
+Oninons:
+    
     ####onions######
     sll $a0 $s1 12
     srl $a0 $a0 27
@@ -889,11 +1706,14 @@ magic_done:
     sll $a3 $a3 12
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 262145
     jal pick_up_loads
+    add $t3 $t3 1
+Unwahsed_Unchopped_Lettuce:
     ####Unwashed Unchopped Lettuce######
+    
     sll $a0 $s1 17
     srl $a0 $a0 27
     la $a3 shared
@@ -902,11 +1722,14 @@ magic_done:
     sll $a3 $a3 17
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327680
     jal pick_up_loads
+    add $t3 $t3 1
+Unchopped_Lettuce:
     ####Unchopped Lettuce######
+    
     sll $a0 $s1 22
     srl $a0 $a0 27
     la $a3 shared
@@ -915,20 +1738,35 @@ magic_done:
     sll $a3 $a3 22
     srl $a3 $a3 27
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327681
     jal pick_up_loads
+    add $t3 $t3 1
+Lettuce:
     ####Lettuce######
     sll $a0 $s1 27
     srl $a0 $a0 27
+    # sw $a0 0xffff0080
+    nop
+    nop
+    # add $t0 $t0 $0
     la $a3 shared
     sw $a3 GET_SHARED
     lw $a3 0($a3)
+    
     sll $a3 $a3 27
     srl $a3 $a3 27
+    # add $t0 $t0 $0
+    nop
+    nop
+    # sw $a3 0xffff0080
     sub $a3 $a0 $a3
-    bgtz $a3 interrupt_dispatch
+    # add $t0 $t0 $0
+    # sw $a3 0xffff0080
+    nop
+    nop
+    bgtz $a3 wait_to_die
     # sw $a0 PRINT_INT_ADDR
     li $a1 327682
     jal pick_up_loads
@@ -937,9 +1775,9 @@ magic_done:
 
 
 pick_up_loads:
-        li $t1 0    #$t3 i
+        li $t1 0    #$t2    i
         li $t2 0
-        li $t3 0
+        li $t4 0
     pick_up_loops:
         bge $t1 $a0 end_pick_up 
         bge $t2 4 drop_loads
@@ -949,7 +1787,7 @@ pick_up_loads:
         add $t2 $t2 1
         j pick_up_loops
         end_pick_up:
-        li $t3 1
+        li $t4 1
         j drop_loads
     drop_loads:
         li $t0 90
@@ -968,7 +1806,7 @@ pick_up_loads:
         sw $a2 ANGLE
         li $t0 1
         sw $t0 ANGLE_CONTROL
-        beq $t3 0 back_to_load 
+        beqz $t4 back_to_load 
         jr $ra
     back_to_load:
         j once
@@ -980,6 +1818,8 @@ submit_order:
     li $t0 1
     sw $t0 ANGLE_CONTROL
     sw $t0 SUBMIT_ORDER  
+    la $t3 stage
+    sw $0 0($t3)
     # la $t0 score
     # sw $t0 0xffff1018($0)
     # lw $t0 0($t0)
@@ -988,7 +1828,7 @@ submit_order:
     
 magic_bread:
     lw $t0 GET_MONEY
-    blt $t0 20 interrupt_dispatch
+    blt $t0 40 interrupt_dispatch
     li $t0 0
     li $t1 0
     magic_loop:
@@ -996,3 +1836,37 @@ magic_bread:
         sw $t1 GET_INGREDIENT_INSTANT
         add $t0 $t0 1
         j magic_loop 
+
+adjust_fetch:
+    lw $t0, BOT_Y
+    li $t2, 2
+    li $t1, 160
+    blt $t0, $t1, bin_1
+    j judge_bin
+bin_1:
+    li $t1, 80
+    blt $t0, $t1, bin_0
+    # addi $t2, $t2, -1
+    j judge_bin
+bin_0:
+    addi $t2, $t2, -1
+judge_bin:
+    la $t0, bins
+    add $t2, $t0, $t2
+    lb $t2, 0($t2)
+    li $v0, MAX_ITERATION
+    beq $t2, 7, return_bread
+    beq $t2, 11, return_cheese
+    j return_normal
+return_bread:
+    add $v0, $v0, 2
+    jr $ra
+return_cheese:
+    add $v0, $v0, -2
+    jr $ra
+return_normal:
+    jr $ra
+wait_to_die:
+    la $t0 stage
+    sw $t3 0($t0)
+    j interrupt_dispatch
