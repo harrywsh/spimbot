@@ -547,7 +547,7 @@ timer_pickup:
     add		$t0, $t7, 4
     sw      $t0, PICKUP
     addi    $t7, $t7, -1
-    beq     $t7, -5, timer_return
+    beq     $t7, -4, timer_return
     add		$t0, $t7, 4
     sw      $t0, DROPOFF
 #    sw      $t0, FINISH_APPLIANCE_INSTANT
@@ -556,11 +556,15 @@ timer_pickup:
     j	    interrupt_dispatch
 
 timer_return:
+    sw      $0, DROPOFF
+    sw      $0, FINISH_APPLIANCE_INSTANT
+    sw      $0, PICKUP
     lw      $t0, BOT_X
     blt     $t0, 150, timer_left
     bnez    $s7, timer_right_long
     ##short return
     li      $t0, 162
+    # sw      $0, GET_BOOST
     j       timer_right_return
 timer_right_long:
     ##long return
