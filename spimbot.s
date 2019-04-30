@@ -57,29 +57,42 @@ shared:      .word 0:2
 order:       .word 6
 score:       .word 2
 request:     .word 2
-binnum:      .word 1
+bins:        .byte 0:3
 .text
 j main
 
 get_appliance:
     la $t0 layout
+    la $t3 bins
     sw $t0 GET_LAYOUT
     lw $t1 BOT_X
-    bgt $t1 150 search_right
+    bgt $t1 150 get_appliance_right
     lb $t1 32($t0)
     la $t2 appliance1
     sb $t1 0($t2)
     lb $t1 35($t0)
     la $t2 appliance0
     sb $t1 0($t2)
+    lb $t1 45($t0)
+    sb $t1 0($t3)
+    lb $t1 105($t0)
+    sb $t1 1($t3)
+    lb $t1 165($t0)
+    sb $t1 2($t3)
     jr $ra
-search_right:
+get_appliance_right:
     lb $t1 39($t0)
     la $t2 appliance0
     sb $t1 0($t2)
     lb $t1 42($t0)
     la $t2 appliance1
     sb $t1 0($t2)
+    lb $t1 59($t0)
+    sb $t1 0($t3)
+    lb $t1 119($t0)
+    sb $t1 1($t3)
+    lb $t1 179($t0)
+    sb $t1 2($t3)
     jr $ra
 
 main:
@@ -92,8 +105,6 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
-    la $t0, binnum
-    sw $0, binnum
     la $t1 request
     li $t0 1764173471
     sw $t0 4($t1)
@@ -120,7 +131,20 @@ run_left:
     sw      $t0, ANGLE_CONTROL
 start:
     jal get_appliance
-    li      $t7, MAX_ITERATION ### reserve t7!!!
+    la      $t0, bins
+    lb      $t0, 0($t0)
+    li $t7, MAX_ITERATION
+    beq $t0, 7, initial_bread
+    beq $t0, 11, initial_cheese
+    j initial_normal
+initial_bread:
+    add $t7, $t7, 2
+    j initial_normal
+initial_cheese:
+    add $t7, $t7, -2
+    j initial_normal
+initial_normal:
+    # li      $t7, MAX_ITERATION ### reserve t7!!!
     li      $t9, '#' #!!!!!!!warning: don't use t9
     li      $s7, 0 ### reserve s7!!!
     li      $s6, 0 ### reserve s6!!!
@@ -266,7 +290,8 @@ right_go_next_bin:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7,  MAX_ITERATION
+    jal     adjust_fetch
+    move    $t7, $v0
     j       interrupt_dispatch    # see if other interrupts are waiting
 right_return_work:
     xor     $s7, $s7, 1
@@ -394,7 +419,8 @@ left_go_next_bin:
     sw      $t0, ANGLE_CONTROL
     li      $t0, 10
     sw      $t0, VELOCITY
-    li      $t7,  MAX_ITERATION
+    jal     adjust_fetch
+    move    $t7, $v0
     j       interrupt_dispatch    # see if other interrupts are waiting
 left_return_work:
     xor     $s7, $s7, 1
@@ -1001,4 +1027,31 @@ magic_bread:
         j magic_loop 
 
 adjust_fetch:
-    lw $t0, 
+    lw $t0, BOT_Y
+    li $t2, 2
+    li $t1, 160
+    blt $t0, $t1, bin_1
+    j judge_bin
+bin_1:
+    li $t1, 80
+    blt $t0, $t1, bin_0
+    # addi $t2, $t2, -1
+    j judge_bin
+bin_0:
+    addi $t2, $t2, -1
+judge_bin:
+    la $t0, bins
+    add $t2, $t0, $t2
+    lb $t2, 0($t2)
+    li $v0, MAX_ITERATION
+    beq $t2, 7, return_bread
+    beq $t2, 11, return_cheese
+    j return_normal
+return_bread:
+    add $v0, $v0, 2
+    jr $ra
+return_cheese:
+    add $v0, $v0, -2
+    jr $ra
+return_normal:
+    jr $ra
