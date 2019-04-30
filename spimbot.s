@@ -57,6 +57,7 @@ shared:      .word 0:2
 order:       .word 6
 score:       .word 2
 request:     .word 2
+binnum:      .word 1
 .text
 j main
 
@@ -91,6 +92,8 @@ main:
 	mtc0    $t4, $12
 	
 	#Fill in your code here
+    la $t0, binnum
+    sw $0, binnum
     la $t1 request
     li $t0 1764173471
     sw $t0 4($t1)
@@ -996,3 +999,6 @@ magic_bread:
         sw $t1 GET_INGREDIENT_INSTANT
         add $t0 $t0 1
         j magic_loop 
+
+adjust_fetch:
+    lw $t0, 
