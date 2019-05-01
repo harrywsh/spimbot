@@ -309,10 +309,10 @@ puzzle:      .word 0:452
 appliance0:  .byte 0
 appliance1:  .byte 0
 layout:      .byte 0:225
-shared:      .word 0:2  
+shared:      .word 0:6  
 order:       .word 0:6
 score:       .word 0:2
-request:     .word 0:2
+request:     .word 0:6
 stage:       .word 0
 bins:        .byte 0:3
 .text
